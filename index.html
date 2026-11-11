@@ -1,0 +1,1789 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+<title>餐飲科食材叫貨單</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap&text=%E9%A4%90%E9%A3%B2%E7%A7%91%E9%A3%9F%E6%9D%90%E5%8F%AB%E8%B2%A8%E5%96%AE">
+<style>
+:root{
+  /* Layout: kitchen order pad — sage paper ground, white cards, leaf-green actions, carrot step marks; two columns from 1024px, phones get list + bottom sheet */
+  --bg:#F2F5EF; --surface:#FFFFFF; --surface-2:#F6F8F4; --ink:#17211A; --ink-2:#36423A; --muted:#5B685F;
+  --line:#D4DBD2; --line-strong:#A7B3A9; --accent:#2A6A40; --accent-hover:#215634; --on-accent:#FFFFFF; --accent-soft:#E0EEE4;
+  --carrot:#B04C17; --carrot-soft:#FAE6D9; --warn:#7E4D00; --warn-soft:#FFF0CC; --danger:#B42318; --danger-soft:#FCE8E6;
+  --bubble:#E5F2DE; --ring:rgba(42,106,64,.42); --scrim:rgba(14,22,17,.46);
+  --font-body:"Barlow",system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  --font-display:"Noto Serif TC","Songti TC","Noto Serif CJK TC","PMingLiU",serif;
+  --appbar-h:60px; --toolbar-h:116px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1411; --surface:#161C18; --surface-2:#1C231E; --ink:#E6ECE7; --ink-2:#C4CDC6; --muted:#9AA59D;
+    --line:#2A332D; --line-strong:#46524A; --accent:#6CC489; --accent-hover:#86D3A0; --on-accent:#0B1910; --accent-soft:#1B3123;
+    --carrot:#F0925C; --carrot-soft:#3A2417; --warn:#F3C46A; --warn-soft:#32260E; --danger:#FF8C80; --danger-soft:#3A1A18;
+    --bubble:#1E3122; --ring:rgba(108,196,137,.5); --scrim:rgba(0,0,0,.62);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1411; --surface:#161C18; --surface-2:#1C231E; --ink:#E6ECE7; --ink-2:#C4CDC6; --muted:#9AA59D;
+  --line:#2A332D; --line-strong:#46524A; --accent:#6CC489; --accent-hover:#86D3A0; --on-accent:#0B1910; --accent-soft:#1B3123;
+  --carrot:#F0925C; --carrot-soft:#3A2417; --warn:#F3C46A; --warn-soft:#32260E; --danger:#FF8C80; --danger-soft:#3A1A18;
+  --bubble:#1E3122; --ring:rgba(108,196,137,.5); --scrim:rgba(0,0,0,.62);
+  color-scheme:dark;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+html[data-font="l"]{font-size:18px}
+html[data-font="xl"]{font-size:20px}
+html.lock,html.lock body{overflow:hidden}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:1rem;line-height:1.55}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:max(16px,1rem)}
+button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+h1,h2,h3{text-wrap:balance}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:45;background:var(--surface)}
+
+/* app bar */
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--surface);border-bottom:1px solid var(--line)}
+.appbar-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:56px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{flex:1;min-width:0;display:flex;flex-direction:column}
+.brand h1{margin:0;font-family:var(--font-display);font-weight:900;font-size:1.3rem;letter-spacing:.05em;line-height:1.2}
+.brand p{margin:0;font-size:.8125rem;color:var(--muted)}
+.tbtn{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600;white-space:nowrap}
+.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* layout */
+.layout{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-block:16px 128px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{display:grid;gap:16px;min-width:0;align-content:start}
+@media (min-width:1024px){
+  .layout{grid-template-columns:minmax(0,1.35fr) minmax(360px,1fr);align-items:start;padding-bottom:40px}
+}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap}
+.card-h h2{margin:0;font-size:1.125rem;font-weight:700;flex:1;min-width:0}
+.step{display:inline-grid;place-items:center;flex:none;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--carrot-soft);color:var(--carrot);font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:var(--carrot-soft);color:var(--carrot);font-weight:700;font-size:.875rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.linkbtn{background:none;border:0;padding:6px 4px;color:var(--accent);font-weight:600;cursor:pointer;min-height:44px}
+
+/* fields & chips */
+.field{display:grid;gap:8px;padding-block:12px;border-top:1px dashed var(--line);min-width:0}
+.field:first-child{border-top:0;padding-top:6px}
+.flabel{font-weight:600;font-size:.9375rem;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.flabel small{font-weight:500;color:var(--muted);font-size:.8125rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.chip{min-height:44px;padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);cursor:pointer;font-weight:500;line-height:1.2;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+.chip-sm{min-height:40px;padding:6px 12px;font-size:.9375rem}
+.chip-add{border-style:dashed;border-color:var(--accent);color:var(--accent);background:transparent;font-weight:600}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.addrow .inp{flex:1 1 11rem}
+.inp,select,textarea,input[type="date"],input[type="time"],input[type="search"]{min-height:44px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);padding:8px 10px;min-width:0;max-width:100%}
+select{padding-right:28px;cursor:pointer}
+textarea{width:100%;resize:vertical;line-height:1.5}
+.daterow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.daterow input{flex:0 1 13rem}
+.dow{font-weight:700;color:var(--accent);font-size:1.0625rem;min-width:2.5em}
+.hint{font-size:.8125rem;color:var(--muted);margin:0}
+.info-sum{display:flex;flex-wrap:wrap;gap:6px 14px;font-weight:600;color:var(--ink-2);padding:4px 0 2px}
+.info-sum .miss{color:var(--warn)}
+
+/* toolbar + category nav */
+.toolbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--appbar-h));z-index:20;background:var(--surface);margin:6px -16px 0;padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+.searchrow{display:flex;gap:8px;align-items:center}
+.searchrow input{flex:1 1 auto;width:100%}
+.toggle{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);cursor:pointer;font-weight:600;white-space:nowrap}
+.toggle[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.catnav{display:flex;gap:6px;overflow-x:auto;padding-top:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.catnav::-webkit-scrollbar{display:none}
+.nav-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer;font-weight:600;font-size:.9375rem}
+.nav-chip:hover{border-color:var(--accent)}
+.badge{display:inline-grid;place-items:center;min-width:1.4em;height:1.4em;padding:0 4px;border-radius:999px;background:var(--carrot);color:var(--on-accent);font-size:.75rem;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* item list */
+.cat{padding-top:16px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--appbar-h) + var(--toolbar-h) + 8px)}
+.cat-h{display:flex;align-items:baseline;gap:8px;margin:0 0 6px;font-size:1.0625rem}
+.cat-n{font-size:.8125rem;color:var(--muted);font-weight:500}
+.items{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.item{border-bottom:1px solid var(--line)}
+.item.is-sel{background:var(--accent-soft)}
+.item-head{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;min-height:54px;padding:8px 8px;background:none;border:0;text-align:left;cursor:pointer}
+.item-name{font-weight:600;font-size:1.0625rem;line-height:1.3}
+.item-alias{display:block;font-size:.8125rem;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.tag{display:inline-block;margin-left:6px;padding:0 6px;border:1px solid var(--line-strong);border-radius:6px;font-size:.75rem;font-weight:600;color:var(--muted);vertical-align:2px}
+.item-sum{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;text-align:right;max-width:12em;overflow-wrap:anywhere}
+.sum-warn{color:var(--warn);font-weight:700}
+.item-ico{width:2.1rem;height:2.1rem;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line-strong);color:var(--accent);font-weight:700;font-size:1.1rem;background:var(--surface)}
+.item.is-sel .item-ico{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.item.is-open .item-ico{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.editor{padding:0 8px 14px;display:grid;gap:10px}
+.line{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.line-no{font-size:.8125rem;font-weight:700;color:var(--carrot)}
+.fgrid{display:grid;gap:10px 16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,15.5rem),1fr))}
+.frow{display:grid;grid-template-columns:3em minmax(0,1fr) 44px;align-items:center;gap:8px;min-width:0}
+.frow select{width:100%}
+.flab{font-size:.9375rem;font-weight:600;color:var(--ink-2)}
+.qty{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:6px;min-width:0}
+.qbtn{min-height:44px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface-2);font-size:1.25rem;font-weight:700;cursor:pointer;line-height:1}
+.qbtn:hover{border-color:var(--accent);color:var(--accent)}
+.qin{text-align:center;font-weight:700;font-variant-numeric:tabular-nums;width:100%}
+.addbtn{width:44px;min-height:44px;border:1px dashed var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-size:1.25rem;font-weight:700;cursor:pointer;line-height:1}
+.addbtn:hover{background:var(--accent-soft)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.quick .hint{margin-right:2px}
+.qchip{min-height:38px;padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer;font-variant-numeric:tabular-nums;font-weight:600}
+.qchip:hover{border-color:var(--accent)}
+.qchip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.warn-line{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:.9375rem;font-weight:600}
+.line-out{background:var(--bubble);border-radius:8px;padding:8px 10px;font-size:.9375rem;overflow-wrap:anywhere}
+.line-out b{font-size:.75rem;color:var(--muted);margin-right:8px;letter-spacing:.06em}
+.line-foot{display:flex;justify-content:flex-end}
+.del{background:none;border:0;color:var(--danger);font-weight:600;cursor:pointer;min-height:40px;padding:4px 6px}
+.editor-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.add-item{margin-top:8px;width:100%;min-height:44px;border:1px dashed var(--line-strong);border-radius:10px;background:transparent;color:var(--accent);font-weight:600;cursor:pointer}
+.add-item:hover{border-color:var(--accent)}
+.empty{margin-top:16px;padding:16px;border:1px dashed var(--line-strong);border-radius:12px;display:grid;gap:10px;justify-items:start}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 18px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-weight:700;cursor:pointer;text-decoration:none;text-align:center;line-height:1.25}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn-o{background:transparent;color:var(--accent)}
+.btn-o:hover{background:var(--accent-soft);color:var(--accent)}
+.btn-ghost{background:transparent;border-color:var(--line-strong);color:var(--ink)}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--accent);color:var(--ink)}
+.btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+.btn-danger:hover{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.btn-sm{min-height:42px;padding:6px 14px;font-size:.9375rem}
+.btn-wide{width:100%}
+
+/* output panel */
+.panel{min-width:0}
+.panel-top{display:none}
+.out{display:grid;gap:4px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.seg button{min-height:44px;border:0;border-left:1px solid var(--line-strong);background:var(--surface);cursor:pointer;font-weight:600;padding:6px 8px}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;min-height:44px}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.sw{flex:none;width:48px;height:28px;border-radius:999px;background:var(--line-strong);position:relative;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.switch input:checked + .sw{background:var(--accent)}
+.switch input:checked + .sw::after{transform:translateX(20px)}
+.switch input:focus-visible + .sw{outline:3px solid var(--ring);outline-offset:2px}
+.rcp-n{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rcp-n .qty{width:10.5rem}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:.9375rem;font-weight:600}
+.warnbox p{margin:0}
+.preview-wrap{display:grid;gap:6px}
+.preview-label{font-size:.8125rem;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.preview{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bubble);border-radius:14px;padding:14px 16px;font-family:var(--font-body);font-size:1rem;line-height:1.65;min-height:7rem}
+.preview.is-sample{color:var(--muted);background:var(--surface-2);border:1px dashed var(--line-strong)}
+.actions{display:grid;gap:8px}
+.actions-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+@media (max-width:1023.98px){
+  .panel{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(102%);visibility:hidden;transition:transform .24s ease,visibility 0s linear .24s;padding-block:calc(env(safe-area-inset-top,0px) + 0px) calc(env(safe-area-inset-bottom,0px) + 24px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .panel.open{transform:none;visibility:visible;transition:transform .24s ease}
+  .panel-top{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:2;background:var(--bg);padding-block:10px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+  .panel-top h2{margin:0;font-size:1.125rem;flex:1}
+  .panel .card-h .step{display:none}
+}
+@media (min-width:1024px){
+  .panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--appbar-h) + 16px);max-height:calc(100vh - var(--appbar-h) - 32px);max-height:calc(100dvh - var(--appbar-h) - 32px);overflow-y:auto;border-radius:14px}
+  .bottombar{display:none!important}
+}
+
+/* bottom bar (phones) */
+.bottombar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bottombar .bb-t{flex:1;min-width:0;font-weight:700;display:flex;flex-direction:column;line-height:1.3}
+.bottombar .bb-t small{font-weight:500;color:var(--muted);font-size:.8125rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* sheets & modal */
+.sheet{position:fixed;inset:0;z-index:70;background:var(--scrim);display:grid;align-items:end;justify-items:center}
+.sheet-card{background:var(--bg);width:min(780px,100%);max-height:94vh;max-height:94dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:16px 16px 0 0;padding-block:0 calc(env(safe-area-inset-bottom,0px) + 20px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:820px){.sheet{align-items:center}.sheet-card{border-radius:16px;max-height:88vh;max-height:88dvh}}
+.sheet-top{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:14px 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.sheet-top h2{margin:0;flex:1;font-size:1.1875rem}
+.stack{display:grid;gap:12px}
+.reclist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.rec{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;min-width:0}
+.rec-top{font-weight:700;overflow-wrap:anywhere}
+.rec-name{font-weight:700;color:var(--carrot)}
+.rec-items{color:var(--ink-2);font-size:.9375rem;overflow-wrap:anywhere}
+.rec-meta{color:var(--muted);font-size:.8125rem}
+.rec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rec-pre{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-family:var(--font-body);font-size:.9375rem;line-height:1.6}
+.sset{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.sset h3{margin:0;font-size:1rem}
+.sset p{margin:0;color:var(--ink-2);font-size:.9375rem}
+.mgroup{display:grid;gap:6px}
+.mgroup h4{margin:0;font-size:.875rem;color:var(--muted)}
+.mchips{display:flex;flex-wrap:wrap;gap:6px}
+.mchip{display:inline-flex;align-items:center;gap:2px;padding:2px 2px 2px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface-2);font-weight:500;max-width:100%;overflow-wrap:anywhere}
+.mchip button{min-width:36px;min-height:36px;border:0;background:none;color:var(--danger);cursor:pointer;font-weight:700;border-radius:6px}
+.mchip button:hover{background:var(--danger-soft)}
+.mchip.restore{border-style:dashed;color:var(--muted)}
+.mchip.restore button{color:var(--accent)}
+.modal{position:fixed;inset:0;z-index:90;background:var(--scrim);display:grid;place-items:center;padding:16px}
+.modal-card{background:var(--surface);border-radius:14px;width:min(520px,100%);max-height:90vh;max-height:90dvh;overflow-y:auto;padding:18px;display:grid;gap:12px}
+.modal-card h2{margin:0;font-size:1.125rem}
+.modal-body{color:var(--ink-2);display:grid;gap:10px;overflow-wrap:anywhere}
+.modal-body p{margin:0}
+.modal-body ul{margin:0;padding-left:1.2em}
+.modal-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.mform{display:grid;gap:6px}
+.mform label{font-weight:600;font-size:.9375rem;margin-top:6px}
+.mform .inp,.mform select{width:100%}
+.copybox{width:100%;min-height:12rem}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:95;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;width:max-content;max-width:calc(100% - 32px);font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}
+.toast.show{opacity:1}
+@media (min-width:1024px){.toast{bottom:32px}}
+@media (prefers-reduced-motion: reduce){
+  .panel,.panel.open,.sw,.sw::after,.toast{transition:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header class="appbar" id="appbar">
+  <div class="appbar-in">
+    <div class="brand">
+      <h1>餐飲科食材叫貨單</h1>
+      <p>分類挑食材，一鍵貼到 LINE 群組</p>
+    </div>
+    <button type="button" class="tbtn" id="btnRecords">紀錄</button>
+    <button type="button" class="tbtn" id="btnSettings">設定</button>
+  </div>
+</header>
+
+<main class="layout">
+  <div class="col">
+    <section class="card" id="cardInfo" aria-labelledby="hInfo">
+      <div class="card-h">
+        <span class="step" aria-hidden="true">1</span>
+        <h2 id="hInfo">到貨資訊</h2>
+        <button type="button" class="linkbtn" id="btnInfoFold" aria-expanded="true" aria-controls="infoBody">收合</button>
+      </div>
+      <div class="info-sum" id="infoSum" hidden></div>
+      <div id="infoBody">
+        <div class="field">
+          <label class="flabel" for="fDate">到貨日期</label>
+          <div class="daterow">
+            <input type="date" id="fDate">
+            <span class="dow" id="fDow" aria-live="polite"></span>
+          </div>
+          <div class="chips" id="dateQuick"></div>
+        </div>
+        <div class="field">
+          <label class="flabel" for="fTime">到貨時間</label>
+          <div class="daterow">
+            <input type="time" id="fTime" step="300">
+          </div>
+          <div class="chips" id="timeQuick"></div>
+        </div>
+        <div class="field">
+          <div class="flabel" id="lb-room">到貨教室</div>
+          <div class="chips" data-group="room" role="group" aria-labelledby="lb-room"></div>
+        </div>
+        <div class="field">
+          <div class="flabel" id="lb-teacher">老師</div>
+          <div class="chips" data-group="teacher" role="group" aria-labelledby="lb-teacher"></div>
+        </div>
+        <div class="field">
+          <div class="flabel" id="lb-cls">班級</div>
+          <div class="chips" data-group="cls" role="group" aria-labelledby="lb-cls"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="cardItems" aria-labelledby="hItems">
+      <div class="card-h">
+        <span class="step" aria-hidden="true">2</span>
+        <h2 id="hItems">選食材</h2>
+        <span class="pill" id="selPill">已選 0 項</span>
+      </div>
+      <div class="toolbar" id="toolbar">
+        <div class="searchrow">
+          <input type="search" id="q" placeholder="搜尋食材（含別名，如紅K）" aria-label="搜尋食材" autocomplete="off">
+          <button type="button" class="toggle" id="onlySel" aria-pressed="false">只看已選</button>
+        </div>
+        <nav class="catnav" id="catnav" aria-label="食材分類"></nav>
+      </div>
+      <div id="list"></div>
+    </section>
+  </div>
+
+  <aside class="panel" id="panel" aria-labelledby="hOut">
+    <div class="panel-top">
+      <button type="button" class="btn btn-ghost btn-sm" id="btnBack">← 回食材清單</button>
+      <h2>預覽・複製</h2>
+    </div>
+    <section class="card out">
+      <div class="card-h">
+        <span class="step" aria-hidden="true">3</span>
+        <h2 id="hOut">預覽・複製</h2>
+        <span class="pill" id="rowPill">0 項</span>
+      </div>
+      <div class="field">
+        <div class="flabel" id="lb-style">訊息樣式</div>
+        <div class="seg" id="styleSeg" role="group" aria-labelledby="lb-style">
+          <button type="button" data-style="cat">分類版</button>
+          <button type="button" data-style="simple">精簡版</button>
+          <button type="button" data-style="num">編號版</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="switch"><input type="checkbox" id="rcpOn"><span class="sw" aria-hidden="true"></span><span>加上「請提供空白收據」</span></label>
+        <div class="rcp-n" id="rcpRow">
+          <span class="flab" id="lb-rcp">張數</span>
+          <div class="qty" role="group" aria-labelledby="lb-rcp">
+            <button type="button" class="qbtn" id="rcpDec" aria-label="減少張數">−</button>
+            <input class="inp qin" id="rcpN" inputmode="numeric" autocomplete="off" aria-label="空白收據張數" value="1">
+            <button type="button" class="qbtn" id="rcpInc" aria-label="增加張數">＋</button>
+          </div>
+          <span>張</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel" for="note">備註 <small>可不填，會加在訊息最後</small></label>
+        <textarea id="note" rows="2" maxlength="300" placeholder="例如：鳳梨請挑熟度好的"></textarea>
+      </div>
+      <div class="field">
+        <div class="warnbox" id="warnbox" hidden></div>
+        <div class="preview-wrap">
+          <div class="preview-label" id="previewLabel">LINE 訊息預覽</div>
+          <pre class="preview" id="preview" aria-live="polite"></pre>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-wide" id="btnCopy">複製訊息</button>
+          <a class="btn btn-o btn-wide" id="btnLine" href="https://line.me/R/share?text=" target="_blank" rel="noopener" hidden>用 LINE 分享（手機）</a>
+          <div class="actions-2">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnSaveTpl">存一筆紀錄</button>
+            <button type="button" class="btn btn-danger btn-sm" id="btnClear">清空這張單</button>
+          </div>
+          <p class="hint">複製或分享時會自動存一筆到「紀錄」，下次可以直接帶入。</p>
+        </div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<div class="bottombar" id="bottombar">
+  <div class="bb-t"><span id="bbCount">已選 0 項</span><small id="bbInfo">到貨資訊還沒填</small></div>
+  <button type="button" class="btn" id="btnPreview">預覽・複製</button>
+</div>
+
+<div class="sheet" id="sheetRec" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="hRec">
+    <div class="sheet-top">
+      <h2 id="hRec">叫貨紀錄</h2>
+      <button type="button" class="btn btn-ghost btn-sm" data-close="sheetRec">關閉</button>
+    </div>
+    <div class="stack" id="recBody"></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheetSet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="hSet">
+    <div class="sheet-top">
+      <h2 id="hSet">設定</h2>
+      <button type="button" class="btn btn-ghost btn-sm" data-close="sheetSet">關閉</button>
+    </div>
+    <div class="stack" id="setBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle"></h2>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="seed">{"cats":[{"id":"veg","name":"蔬菜根莖類","emoji":"🥬"},{"id":"spi","name":"辛香料與調味菜","emoji":"🧄"},{"id":"mus","name":"菇菌與筍類","emoji":"🍄"},{"id":"mea","name":"肉品與家禽類","emoji":"🥩"},{"id":"sea","name":"水產海鮮類","emoji":"🦐"},{"id":"fru","name":"水果類","emoji":"🍋"},{"id":"tof","name":"豆製品與加工乾貨","emoji":"🥫"},{"id":"gra","name":"五穀雜糧與堅果醬料","emoji":"🌾"}],"items":[{"id":"veg01","cat":"veg","name":"紅蘿蔔","std":"紅蘿蔔","alias":["紅K"],"units":["條","支"],"specs":[],"cut":false,"quick":{"條":[1,2,3,5,7,10,16,17],"支":[5,10]},"n":43},{"id":"veg02","cat":"veg","name":"小黃瓜","std":"小黃瓜","alias":[],"units":["條"],"specs":[],"cut":false,"quick":{"條":[1,2,3,5,6,7,10,15]},"n":29},{"id":"veg03","cat":"veg","name":"大黃瓜","std":"大黃瓜","alias":[],"units":["條","個"],"specs":[],"cut":false,"quick":{"條":[1,2,3,4,11],"個":[2]},"n":17},{"id":"veg04","cat":"veg","name":"青椒","std":"青椒","alias":[],"units":["個","條","顆"],"specs":[],"cut":false,"quick":{"個":[1,3,5],"條":[2,3,5],"顆":[1]},"n":18},{"id":"veg05","cat":"veg","name":"洋蔥","std":"洋蔥","alias":[],"units":["顆","個"],"specs":[],"cut":false,"quick":{"顆":[1,2,3],"個":[5]},"n":17},{"id":"veg06","cat":"veg","name":"馬鈴薯","std":"馬鈴薯","alias":[],"units":["顆","個"],"specs":["單重150g以上"],"cut":false,"quick":{"顆":[1,2,3,5,10],"個":[2,5]},"n":8},{"id":"veg07","cat":"veg","name":"茄子","std":"茄子","alias":[],"units":["條","g"],"specs":[],"cut":false,"quick":{"條":[2,5],"g":[1800]},"n":5},{"id":"veg08","cat":"veg","name":"地瓜","std":"地瓜(黃/紫)","alias":["黃地瓜","紫地瓜","地瓜(黃/紫)"],"units":["g"],"specs":["黃地瓜","紫地瓜"],"cut":false,"quick":{"g":[1300,1500,1700,2000,2500]},"n":7},{"id":"veg09","cat":"veg","name":"西洋芹","std":"西洋芹","alias":["西芹"],"units":["g","株"],"specs":["整株","切段"],"cut":false,"quick":{"g":[100,150,400],"株":[1]},"n":6},{"id":"veg10","cat":"veg","name":"紅甜椒","std":"紅甜椒","alias":["紅椒"],"units":["顆","個"],"specs":[],"cut":false,"quick":{"顆":[1,3],"個":[1]},"n":4},{"id":"veg11","cat":"veg","name":"黃甜椒","std":"黃甜椒","alias":["黃椒"],"units":["顆","個"],"specs":[],"cut":false,"quick":{"顆":[1,3],"個":[1]},"n":3},{"id":"veg12","cat":"veg","name":"綠豆芽","std":"綠豆芽","alias":["豆芽菜"],"units":["g","兩"],"specs":[],"cut":false,"quick":{"g":[300,1000],"兩":[6]},"n":4},{"id":"veg13","cat":"veg","name":"小番茄","std":"小番茄","alias":["聖女小番茄","小蕃茄","小番茄(紅色)"],"units":["g","顆","斤"],"specs":["聖女小番茄","紅色"],"cut":false,"quick":{"g":[60,300],"顆":[64],"斤":[4]},"n":4},{"id":"veg14","cat":"veg","name":"白蘿蔔","std":"白蘿蔔","alias":[],"units":["條"],"specs":[],"cut":false,"quick":{"條":[1,2]},"n":3},{"id":"veg15","cat":"veg","name":"芋頭","std":"芋頭","alias":[],"units":["顆","個"],"specs":[],"cut":false,"quick":{"顆":[2,3],"個":[1]},"n":3},{"id":"veg16","cat":"veg","name":"馬蹄","std":"馬蹄(荸薺)","alias":["馬蹄(荸薺)"],"units":["顆"],"specs":[],"cut":false,"quick":{"顆":[2,5,6]},"n":3},{"id":"veg17","cat":"veg","name":"櫛瓜","std":"櫛瓜","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[250]},"n":3},{"id":"veg18","cat":"veg","name":"高麗菜","std":"高麗菜","alias":[],"units":["顆"],"specs":[],"cut":false,"quick":{"顆":[1]},"n":2},{"id":"veg19","cat":"veg","name":"大白菜","std":"大白菜","alias":[],"units":["顆"],"specs":[],"cut":false,"quick":{"顆":[3]},"n":2},{"id":"veg20","cat":"veg","name":"青江菜","std":"青江菜","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[150,300,600]},"n":3},{"id":"veg21","cat":"veg","name":"四季豆","std":"四季豆","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[300,1000]},"n":3},{"id":"veg22","cat":"veg","name":"菠菜","std":"菠菜","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[200]},"n":1},{"id":"veg23","cat":"veg","name":"中芹","std":"芹菜(中芹)","alias":["芹菜(中芹)"],"units":["g"],"specs":[],"cut":false,"quick":{"g":[100]},"n":1},{"id":"veg24","cat":"veg","name":"黃豆芽","std":"黃豆芽","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[180]},"n":1},{"id":"veg25","cat":"veg","name":"牛蒡","std":"牛蒡","alias":[],"units":["隻"],"specs":[],"cut":false,"quick":{"隻":[2]},"n":1},{"id":"veg26","cat":"veg","name":"甜豆","std":"甜豆","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[150]},"n":1},{"id":"veg27","cat":"veg","name":"青豆仁","std":"青豆仁","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[30]},"n":1},{"id":"veg28","cat":"veg","name":"綠蘆筍","std":"綠蘆筍","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[180]},"n":1},{"id":"veg29","cat":"veg","name":"牛番茄","std":"牛番茄","alias":[],"units":["顆"],"specs":["大顆"],"cut":false,"quick":{"顆":[2]},"n":1},{"id":"spi01","cat":"spi","name":"青蔥","std":"青蔥","alias":["蔥"],"units":["g","斤","支"],"specs":[],"cut":false,"quick":{"g":[50,60,100,120,150,180,200,250],"斤":[3],"支":[180]},"n":40},{"id":"spi02","cat":"spi","name":"薑","std":"薑(粉薑/一般)","alias":["薑末","薑(粉薑/一般)"],"units":["g","塊"],"specs":["整塊","粉薑"],"cut":true,"quick":{"g":[50,60,90,120,200,250,350,400]},"n":35},{"id":"spi03","cat":"spi","name":"紅辣椒","std":"紅辣椒","alias":["直紅辣椒","辣椒","直辣椒","紅直辣椒"],"units":["條","支","根"],"specs":["直紅辣椒","直辣椒"],"cut":false,"quick":{"條":[1,2,3,5,10,15],"支":[10],"根":[2]},"n":34},{"id":"spi04","cat":"spi","name":"蒜頭","std":"蒜頭","alias":[],"units":["g","斤"],"specs":["去膜","帶膜"],"cut":false,"quick":{"g":[20,30,50,60,80,100,110,130],"斤":[0.5]},"n":29},{"id":"spi05","cat":"spi","name":"老薑","std":"老薑","alias":[],"units":["g"],"specs":[],"cut":true,"quick":{"g":[120,250]},"n":4},{"id":"spi06","cat":"spi","name":"嫩薑","std":"嫩薑","alias":[],"units":["g","兩"],"specs":[],"cut":true,"quick":{"g":[60,100],"兩":[4]},"n":3},{"id":"spi07","cat":"spi","name":"香菜","std":"香菜","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[20,40]},"n":3},{"id":"spi08","cat":"spi","name":"九層塔","std":"九層塔","alias":[],"units":["g","兩"],"specs":[],"cut":false,"quick":{"g":[25,40],"兩":[4]},"n":3},{"id":"spi09","cat":"spi","name":"紅蔥頭","std":"紅蔥頭","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[40,90]},"n":3},{"id":"spi10","cat":"spi","name":"大紅袍花椒","std":"大紅袍花椒","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[50,65]},"n":2},{"id":"spi11","cat":"spi","name":"乾辣椒","std":"乾辣椒","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[360]},"n":1},{"id":"spi12","cat":"spi","name":"大蔥","std":"大蔥","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[60]},"n":1},{"id":"spi13","cat":"spi","name":"巴西利","std":"巴西利","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[20]},"n":1},{"id":"spi14","cat":"spi","name":"韭黃","std":"韭黃","alias":[],"units":["兩"],"specs":[],"cut":false,"quick":{"兩":[4]},"n":1},{"id":"mus01","cat":"mus","name":"桶筍","std":"桶筍","alias":[],"units":["支","g","塊"],"specs":["中型","單支150g以上","單支220g以上"],"cut":true,"quick":{"支":[3,5,10],"g":[100,200,500,600,700,1000]},"n":20},{"id":"mus02","cat":"mus","name":"杏鮑菇","std":"杏鮑菇","alias":[],"units":["g","支","條"],"specs":["大支","單支100g以上"],"cut":false,"quick":{"g":[100,320,500,1000,1500],"支":[5,10],"條":[10]},"n":13},{"id":"mus03","cat":"mus","name":"乾木耳","std":"乾木耳","alias":[],"units":["g","片"],"specs":[],"cut":false,"quick":{"g":[30,50],"片":[5,40]},"n":6},{"id":"mus04","cat":"mus","name":"乾香菇","std":"乾香菇","alias":[],"units":["g","朵"],"specs":[],"cut":false,"quick":{"g":[30,50,80,100],"朵":[5,20]},"n":6},{"id":"mus05","cat":"mus","name":"秀珍菇","std":"秀珍菇","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[250,260]},"n":4},{"id":"mus06","cat":"mus","name":"洋菇","std":"洋菇(蘑菇)","alias":["蘑菇","洋菇(蘑菇)"],"units":["g","盒"],"specs":["中小顆"],"cut":false,"quick":{"g":[600,650],"盒":[2]},"n":3},{"id":"mus07","cat":"mus","name":"新鮮木耳","std":"新鮮木耳","alias":["木耳","厚木耳"],"units":["g"],"specs":["厚木耳"],"cut":false,"quick":{"g":[30,100,500]},"n":3},{"id":"mus08","cat":"mus","name":"金針菇","std":"金針菇","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[500]},"n":2},{"id":"mus09","cat":"mus","name":"碧玉筍","std":"碧玉筍","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[300]},"n":2},{"id":"mus10","cat":"mus","name":"冬筍","std":"冬筍","alias":[],"units":["g"],"specs":[],"cut":true,"quick":{"g":[800]},"n":1},{"id":"mus11","cat":"mus","name":"猴頭菇","std":"猴頭菇","alias":[],"units":["g"],"specs":["優先新鮮，若無則乾燥","新鮮","乾燥"],"cut":false,"quick":{"g":[250]},"n":1},{"id":"mus12","cat":"mus","name":"雪白菇","std":"雪白菇","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[100]},"n":1},{"id":"mus13","cat":"mus","name":"鴻喜菇","std":"鴻喜菇","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[100]},"n":1},{"id":"mea01","cat":"mea","name":"豬大里肌","std":"豬大里肌","alias":["大里肌","里肌肉","大里肌肉"],"units":["g","斤","塊","份"],"specs":["整塊秤重","分切100g","分切150g","分切180g","分切200g","分切300g","分切400g"],"cut":true,"quick":{"g":[500,750,1000,1800,2000,3000,4000],"斤":[0.5,1,2.5],"塊":[5]},"n":30},{"id":"mea02","cat":"mea","name":"豬絞肉","std":"豬絞肉","alias":[],"units":["g","斤"],"specs":[],"cut":true,"quick":{"g":[250,400,750],"斤":[0.5,1,1.125,1.5]},"n":15},{"id":"mea03","cat":"mea","name":"雞胸肉","std":"雞胸肉","alias":["帶骨雞胸肉","帶皮雞胸肉","雞胸"],"units":["副"],"specs":["帶骨","帶皮","帶骨帶皮"],"cut":true,"quick":{"副":[2,3,4,5,6,10]},"n":17},{"id":"mea04","cat":"mea","name":"L腿","std":"雞骨腿(L腿)","alias":["帶骨L腿","雞骨腿(L腿)"],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[5,6,10,12]},"n":5},{"id":"mea05","cat":"mea","name":"全雞","std":"全雞","alias":[],"units":["隻"],"specs":["小隻"],"cut":true,"quick":{"隻":[1,2]},"n":4},{"id":"mea06","cat":"mea","name":"仿雞腿","std":"仿雞腿","alias":[],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[5,6]},"n":2},{"id":"mea07","cat":"mea","name":"棒棒腿","std":"棒棒腿","alias":["雞腿(棒棒腿)"],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[4]},"n":1},{"id":"mea08","cat":"mea","name":"梅花豬肉片","std":"梅花豬肉片","alias":[],"units":["g"],"specs":["火鍋片","燒烤片"],"cut":true,"quick":{"g":[400]},"n":1},{"id":"mea09","cat":"mea","name":"全鴨","std":"全鴨","alias":["鴨子"],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[2]},"n":1},{"id":"sea01","cat":"sea","name":"鱸魚","std":"鱸魚","alias":[],"units":["隻","尾","條"],"specs":[],"cut":true,"quick":{"隻":[4,5,6],"尾":[4,5,6],"條":[2]},"n":16},{"id":"sea02","cat":"sea","name":"鮮蝦","std":"鮮蝦(白蝦/草蝦)","alias":["蝦子","白蝦","草蝦","鮮蝦(白蝦/草蝦)"],"units":["斤","隻"],"specs":["白蝦","草蝦","中小型"],"cut":true,"quick":{"斤":[0.5,1,1.5,2,2.5],"隻":[12]},"n":9},{"id":"sea03","cat":"sea","name":"花枝","std":"花枝(墨魚)","alias":["墨魚","花枝清肉","花枝(墨魚)"],"units":["隻"],"specs":["整隻","清肉","清肉單隻約150g"],"cut":true,"quick":{"隻":[2,3,5]},"n":7},{"id":"sea04","cat":"sea","name":"吳郭魚","std":"吳郭魚","alias":[],"units":["隻","尾"],"specs":[],"cut":true,"quick":{"隻":[5,10],"尾":[6]},"n":4},{"id":"sea05","cat":"sea","name":"蝦米","std":"蝦米","alias":[],"units":["g"],"specs":[],"cut":true,"quick":{"g":[20,50,75]},"n":6},{"id":"sea06","cat":"sea","name":"蝦仁","std":"蝦仁","alias":[],"units":["斤"],"specs":[],"cut":true,"quick":{"斤":[0.5]},"n":2},{"id":"sea07","cat":"sea","name":"乾魷魚","std":"乾魷魚","alias":[],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[2]},"n":2},{"id":"sea08","cat":"sea","name":"中卷","std":"中卷","alias":[],"units":["隻"],"specs":[],"cut":true,"quick":{"隻":[2]},"n":1},{"id":"fru01","cat":"fru","name":"檸檬","std":"檸檬","alias":[],"units":["顆"],"specs":[],"cut":false,"quick":{"顆":[1,4,7,10,12,25]},"n":7},{"id":"fru02","cat":"fru","name":"柳橙","std":"柳橙(香吉士)","alias":["香吉士","柳橙(香吉士)"],"units":["顆","個"],"specs":["香吉士"],"cut":false,"quick":{"顆":[8,40,48,51],"個":[10]},"n":6},{"id":"fru03","cat":"fru","name":"大西瓜","std":"大西瓜","alias":[],"units":["顆"],"specs":["每顆約5公斤"],"cut":false,"quick":{"顆":[1,2]},"n":4},{"id":"fru04","cat":"fru","name":"木瓜","std":"木瓜","alias":[],"units":["條","顆"],"specs":[],"cut":false,"quick":{"條":[1,6],"顆":[4]},"n":4},{"id":"fru05","cat":"fru","name":"奇異果","std":"奇異果","alias":["綠色奇異果"],"units":["顆"],"specs":["綠色奇異果"],"cut":false,"quick":{"顆":[4,6,23]},"n":3},{"id":"fru06","cat":"fru","name":"蘋果","std":"蘋果","alias":["小蘋果"],"units":["顆"],"specs":["小蘋果"],"cut":false,"quick":{"顆":[2,4,10]},"n":3},{"id":"fru07","cat":"fru","name":"香蕉","std":"香蕉","alias":[],"units":["根"],"specs":[],"cut":false,"quick":{"根":[10,16]},"n":3},{"id":"fru08","cat":"fru","name":"鳳梨","std":"鳳梨","alias":[],"units":["顆"],"specs":["請注意熟度與品質"],"cut":false,"quick":{"顆":[1,4]},"n":3},{"id":"fru09","cat":"fru","name":"葡萄柚","std":"葡萄柚","alias":[],"units":["顆"],"specs":[],"cut":false,"quick":{"顆":[9]},"n":2},{"id":"fru10","cat":"fru","name":"金桔","std":"金桔","alias":[],"units":["盒"],"specs":[],"cut":false,"quick":{"盒":[3]},"n":1},{"id":"tof01","cat":"tof","name":"嫩豆腐","std":"嫩豆腐(中華豆腐)","alias":["非基改嫩豆腐","中華豆腐","嫩豆腐(中華豆腐)"],"units":["盒","g"],"specs":["非基改","中華豆腐"],"cut":false,"quick":{"盒":[3,5,16],"g":[1000]},"n":8},{"id":"tof02","cat":"tof","name":"豆干","std":"豆干(五香大豆干)","alias":["五香大豆乾","五香大豆干","豆干(五香大豆干)"],"units":["塊","片"],"specs":["五香大豆干"],"cut":false,"quick":{"塊":[3,5,10],"片":[6]},"n":6},{"id":"tof03","cat":"tof","name":"榨菜","std":"榨菜","alias":[],"units":["顆"],"specs":["單顆200g以上"],"cut":false,"quick":{"顆":[5]},"n":4},{"id":"tof04","cat":"tof","name":"板豆腐","std":"板豆腐","alias":[],"units":["盒"],"specs":[],"cut":false,"quick":{"盒":[2,10]},"n":3},{"id":"tof05","cat":"tof","name":"鳳梨罐頭","std":"鳳梨罐頭","alias":[],"units":["罐"],"specs":[],"cut":false,"quick":{"罐":[1]},"n":3},{"id":"tof06","cat":"tof","name":"玉米罐頭","std":"玉米罐頭","alias":[],"units":["罐"],"specs":[],"cut":false,"quick":{"罐":[1,2]},"n":2},{"id":"tof07","cat":"tof","name":"酸菜心","std":"酸菜心","alias":[],"units":["顆"],"specs":["單顆約180g"],"cut":false,"quick":{"顆":[5]},"n":2},{"id":"gra01","cat":"gra","name":"腰果","std":"腰果","alias":["生腰果"],"units":["斤"],"specs":["生腰果"],"cut":false,"quick":{"斤":[1,2,3]},"n":3},{"id":"gra02","cat":"gra","name":"豆豉","std":"豆豉(乾豆豉)","alias":["乾豆豉","豆豉(乾豆豉)"],"units":["g"],"specs":["乾豆豉"],"cut":false,"quick":{"g":[30,50]},"n":3},{"id":"gra03","cat":"gra","name":"去皮花生仁","std":"去皮花生仁","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[200,250]},"n":2},{"id":"gra04","cat":"gra","name":"白米","std":"白米","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[1000]},"n":1},{"id":"gra05","cat":"gra","name":"長糯米","std":"長糯米","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[1000]},"n":1},{"id":"gra06","cat":"gra","name":"甜麵醬","std":"甜麵醬","alias":[],"units":["g"],"specs":[],"cut":false,"quick":{"g":[200]},"n":1},{"id":"gra07","cat":"gra","name":"冬瓜醬","std":"冬瓜醬","alias":[],"units":["罐"],"specs":[],"cut":false,"quick":{"罐":[1]},"n":1},{"id":"gra08","cat":"gra","name":"黃豆醬","std":"黃豆醬","alias":[],"units":["罐"],"specs":[],"cut":false,"quick":{"罐":[1]},"n":1}],"templates":[{"id":"t01","date":"2026-04-13","msgDate":"2026-04-10","teacher":"謝欣芸","cls":"108班","lines":[["veg05",2,"顆",0,""],["veg01",7,"條",0,""],["veg18",1,"顆",0,""],["spi01",60,"g",0,""],["spi04",60,"g",0,""]]},{"id":"t02","date":"2026-04-13","msgDate":"2026-04-10","teacher":"謝欣芸","cls":"207班","lines":[["mea06",5,"隻",0,""],["mea01",500,"g",0,""],["sea04",5,"隻",0,""],["spi05",120,"g",0,""],["spi02",120,"g",0,""],["spi03",5,"條",0,""],["spi04",60,"g",0,""],["spi01",100,"g",0,""],["mus07",100,"g",0,""],["veg04",2,"條",0,""],["veg01",2,"條",0,""],["gra05",1000,"g",0,""]]},{"id":"t03","date":"2026-04-20","msgDate":"2026-04-15","teacher":"謝欣芸","cls":"208班","lines":[["mea06",6,"隻",0,""],["mea01",500,"g",0,""],["sea04",5,"隻",0,""],["spi05",120,"g",0,""],["spi02",120,"g",0,""],["spi03",5,"條",0,""],["spi04",60,"g",0,""],["spi01",100,"g",0,""],["mus03",50,"g",0,""],["veg04",2,"條",0,""],["veg01",2,"條",0,""]]},{"id":"t04","date":"2026-04-20","msgDate":"2026-04-15","teacher":"謝欣芸","cls":"207班","lines":[["tof01",1000,"g",0,"非基改"],["mus04",100,"g",0,""],["mus02",500,"g",0,""],["mus05",260,"g",0,""],["veg01",3,"條",0,""],["mus07",500,"g",0,"厚木耳"],["mus10",800,"g",0,""],["mus08",500,"g",0,""],["spi01",620,"g",0,""],["veg05",1,"顆",0,""],["spi04",40,"g",0,""],["spi02",60,"g",0,""],["spi03",3,"條",0,"直紅辣椒"],["mea05",1,"隻",0,""]]},{"id":"t05","date":"2026-04-20","msgDate":"2026-04-15","teacher":"謝欣芸","cls":"108班","lines":[["veg06",10,"顆",0,""],["mus06",650,"g",0,"中小顆"],["spi04",30,"g",0,""],["spi13",20,"g",0,""]]},{"id":"t06","date":"2026-04-20","msgDate":"2026-04-17","teacher":"陳美妤","cls":"觀光餐飲學程","lines":[["fru05",6,"顆",0,""],["fru06",10,"顆",0,""],["fru02",10,"個",0,""],["fru07",10,"根",0,""],["fru01",25,"顆",0,""]]},{"id":"t07","date":"2026-04-27","msgDate":"2026-04-23","teacher":"謝欣芸","cls":"208班","lines":[["tof01",5,"盒",0,""],["mus02",320,"g",0,""],["mus05",250,"g",0,""],["mus03",30,"g",0,""],["mus08",500,"g",0,""],["spi01",300,"g",0,""],["mus01",700,"g",0,""],["veg01",2,"條",0,""],["veg07",1800,"g",0,""],["spi01",250,"g",0,""],["spi04",80,"g",0,""],["spi03",3,"條",0,""],["spi02",160,"g",0,""],["mea02",750,"g",0,""]]},{"id":"t08","date":"2026-04-27","msgDate":"2026-04-23","teacher":"謝欣芸","cls":"207班","lines":[["gra04",1000,"g",0,""],["veg02",6,"條",0,""],["veg07",1800,"g",0,""],["spi01",250,"g",0,""],["spi04",80,"g",0,""],["spi03",3,"條",0,""],["spi02",160,"g",0,""],["mus02",1000,"g",0,""],["veg01",3,"條",0,""],["mea02",750,"g",0,""]]},{"id":"t09","date":"2026-05-04","msgDate":"2026-04-30","teacher":"謝欣芸","cls":"208班","lines":[["veg02",10,"條",0,""],["veg01",3,"條",0,""],["veg14",2,"條",0,""],["spi03",10,"支",0,""],["veg08",1300,"g",0,""],["spi02",60,"g",0,""],["spi01",120,"g",0,""],["gra06",200,"g",0,""],["mea01",2.5,"斤",0,""]]},{"id":"t10","date":"2026-05-11","msgDate":"2026-05-05","teacher":"謝欣芸","cls":"208班","lines":[["tof01",16,"盒",0,""],["gra03",250,"g",0,""],["spi11",360,"g",0,""],["spi02",90,"g",0,"整塊"],["mus11",250,"g",0,"優先新鮮，若無則乾燥"],["mus05",250,"g",0,""],["mus09",300,"g",0,""],["spi07",40,"g",0,""],["veg17",250,"g",0,""],["spi10",65,"g",0,""],["spi01",370,"g",0,""],["spi04",130,"g",0,""],["mea04",12,"隻",0,""]]},{"id":"t11","date":"2026-05-11","msgDate":"2026-05-05","teacher":"謝欣芸","cls":"207班","lines":[["veg14",2,"條",0,""],["veg01",2,"條",0,""],["veg02",10,"條",0,""],["spi03",10,"支",0,""],["veg17",250,"g",0,""],["spi10",50,"g",0,""],["spi01",260,"g",0,""],["spi04",130,"g",0,""],["gra03",200,"g",0,""],["mea04",10,"隻",0,""]]},{"id":"t12","date":"2026-05-11","msgDate":"2026-05-05","teacher":"謝欣芸","cls":"西餐研習","lines":[["mea05",1,"隻",0,"小隻"],["veg13",300,"g",0,"聖女小番茄"],["veg09",100,"g",0,""],["veg05",1,"顆",0,""],["spi12",60,"g",0,""]]},{"id":"t13","date":"2026-05-18","msgDate":"2026-05-14","teacher":"謝欣芸","cls":"108(1)","lines":[["fru04",6,"條",0,""],["fru05",23,"顆",0,"綠色奇異果"],["veg01",2,"條",0,""],["spi02",100,"g",0,""],["mus01",200,"g",0,""],["mus03",30,"g",0,""],["mea02",0.5,"斤",0,""]]},{"id":"t14","date":"2026-05-18","msgDate":"2026-05-14","teacher":"謝欣芸","cls":"108(2)","lines":[["mea02",1,"斤",0,""],["sea01",4,"隻",0,""],["sea02",2.5,"斤",0,""],["mea03",2,"副",0,"帶骨"],["gra01",1,"斤",0,"生腰果"],["veg10",1,"個",0,""],["veg11",1,"個",0,""],["veg18",1,"顆",0,""],["spi04",30,"g",0,""],["spi01",50,"g",0,""],["spi02",50,"g",0,""],["veg06",2,"個",0,""],["veg22",200,"g",0,""],["veg20",150,"g",0,""],["veg02",2,"條",0,""],["veg03",1,"條",0,""],["spi03",2,"根",0,"直辣椒"]]},{"id":"t15","date":"2026-05-18","msgDate":"2026-05-14","teacher":"謝欣芸","cls":"207班","lines":[["mea01",500,"g",0,""],["mea03",5,"副",0,"帶骨"],["sea03",3,"隻",0,""],["sea02",1,"斤",0,"白蝦"],["veg01",2,"條",0,""],["veg02",3,"條",0,""],["spi02",270,"g",0,""],["spi01",250,"g",0,""],["spi04",50,"g",0,""],["mus01",500,"g",0,""],["mus04",50,"g",0,""]]},{"id":"t16","date":"2026-05-18","msgDate":"2026-05-14","teacher":"謝欣芸","cls":"208班","lines":[["mea01",1,"斤",0,""],["mea03",6,"副",0,"帶骨"],["sea03",3,"隻",0,""],["sea02",1.5,"斤",0,"白蝦"],["veg01",3,"條",0,""],["veg02",3,"條",0,""],["spi02",350,"g",0,""],["spi01",350,"g",0,""],["spi04",60,"g",0,""],["mus01",600,"g",0,""],["mus04",80,"g",0,""]]},{"id":"t17","date":"2026-05-18","msgDate":"2026-05-14","teacher":"謝欣芸","cls":"西餐研習","lines":[["mea03",6,"副",0,"帶皮"],["mus06",600,"g",0,""],["veg05",2,"顆",0,""],["spi04",50,"g",0,""],["mus12",100,"g",0,""],["mus13",100,"g",0,""],["spi09",40,"g",0,""],["veg26",150,"g",0,""],["veg28",180,"g",0,""]]},{"id":"t18","date":"2026-05-18","msgDate":"2026-05-15","teacher":"陳美妤","cls":"207(烘焙)","lines":[["veg13",64,"顆",0,""],["spi08",40,"g",0,""],["veg05",2,"顆",0,""],["fru01",12,"顆",0,""]]},{"id":"t19","date":"2026-05-25","msgDate":"2026-05-22","teacher":"謝欣芸","cls":"108(1)","lines":[["veg08",2000,"g",0,"黃地瓜"],["veg08",1500,"g",0,"紫地瓜"],["veg15",2,"顆",0,""]]},{"id":"t20","date":"2026-05-25","msgDate":"2026-05-22","teacher":"謝欣芸","cls":"108(2)","lines":[["sea02",1,"斤",0,""],["sea01",6,"隻",0,""],["mea07",4,"隻",0,""],["mea04",6,"隻",0,""],["mea03",5,"副",0,""],["tof04",2,"盒",0,""],["mus04",30,"g",0,""],["mus01",100,"g",0,""],["veg16",2,"顆",0,""],["veg20",300,"g",0,""],["veg09",150,"g",0,""],["veg12",300,"g",0,""],["veg01",2,"條",0,""],["veg15",3,"顆",0,""],["veg04",1,"顆",0,""],["veg05",1,"顆",0,""],["veg10",1,"顆",0,""],["veg11",1,"顆",0,""],["veg02",2,"條",0,""],["spi03",2,"條",0,"直紅辣椒"],["fru06",4,"顆",0,"小蘋果"]]},{"id":"t21","date":"2026-05-25","msgDate":"2026-05-22","teacher":"謝欣芸","cls":"208班","lines":[["gra01",3,"斤",0,""],["veg08",2500,"g",0,"黃地瓜"],["veg08",2000,"g",0,"紫地瓜"],["veg19",3,"顆",0,""],["spi01",50,"g",0,""],["spi06",100,"g",0,""],["veg16",6,"顆",0,""],["sea06",0.5,"斤",0,""],["mea02",1.5,"斤",0,""],["veg01",2,"條",0,""]]},{"id":"t22","date":"2026-05-25","msgDate":"2026-05-22","teacher":"謝欣芸","cls":"207班","lines":[["sea06",0.5,"斤",0,""],["mea02",1.125,"斤",0,""],["veg08",2000,"g",0,"黃地瓜"],["veg08",1700,"g",0,"紫地瓜"],["veg19",3,"顆",0,""],["spi01",30,"g",0,""],["spi06",60,"g",0,""],["veg16",5,"顆",0,""],["veg01",2,"條",0,""]]},{"id":"t23","date":"2026-05-25","msgDate":"2026-05-22","teacher":"謝欣芸","cls":"308班","lines":[["mea04",5,"隻",0,""],["mea08",400,"g",0,""],["tof04",2,"盒",0,""],["spi02",50,"g",0,""],["veg24",180,"g",0,""],["veg06",3,"顆",0,""],["veg01",2,"條",0,""],["veg02",6,"條",0,""],["veg14",1,"條",0,""],["veg05",1,"顆",0,""],["spi04",20,"g",0,""],["spi03",1,"條",0,""]]},{"id":"t24","date":"2026-06-01","msgDate":"2026-05-29","teacher":"謝欣芸","cls":"108班","lines":[["fru06",2,"顆",0,""],["fru04",1,"條",0,""],["fru05",4,"顆",0,""]]},{"id":"t25","date":"2026-06-01","msgDate":"2026-05-29","teacher":"謝欣芸","cls":"108(2)","lines":[["sea02",0.5,"斤",0,""],["mea03",2,"副",0,""],["sea03",2,"隻",0,""],["mea09",2,"隻",0,""],["mea05",2,"隻",0,""],["veg23",100,"g",0,""],["mus06",2,"盒",0,""],["veg05",1,"顆",0,""],["veg06",2,"顆",0,""],["veg01",1,"條",0,""],["veg07",2,"條",0,""],["veg25",2,"隻",0,""]]},{"id":"t26","date":"2026-06-01","msgDate":"2026-05-29","teacher":"謝欣芸","cls":"108(3)","lines":[["mea05",1,"隻",0,""],["sea01",2,"條",0,""],["mea01",0.5,"斤",0,""],["sea02",12,"隻",0,"草蝦"],["spi14",4,"兩",0,""],["veg01",3,"條",0,""],["spi04",0.5,"斤",0,""],["veg04",1,"個",0,""],["veg10",1,"個",0,""],["tof02",6,"片",0,""],["veg15",1,"個",0,""],["veg12",6,"兩",0,""],["veg02",2,"條",0,""],["spi03",2,"條",0,""],["spi06",4,"兩",0,""]]},{"id":"t27","date":"2026-06-01","msgDate":"2026-05-29","teacher":"謝欣芸","cls":"207班","lines":[["veg20",600,"g",0,""],["spi02",100,"g",0,""],["sea01",5,"尾",0,""],["gra01",2,"斤",0,""]]},{"id":"t28","date":"2026-06-08","msgDate":"2026-06-05","teacher":"謝欣芸","cls":"208班","lines":[["tof01",16,"盒",0,""],["spi02",90,"g",0,""],["mus05",250,"g",0,""],["mus09",300,"g",0,""],["spi07",40,"g",0,""],["veg17",250,"g",0,""],["spi01",370,"g",0,""],["spi04",130,"g",0,""],["mea04",12,"隻",0,""]]},{"id":"t29","date":"2026-06-15","msgDate":"2026-06-11","teacher":"謝欣芸","cls":"207班","lines":[["tof05",1,"罐",0,""],["veg02",5,"條",0,""],["fru01",1,"顆",0,""],["veg06",1,"顆",0,""],["spi01",60,"g",0,""],["sea01",4,"尾",0,""]]},{"id":"t30","date":"2026-06-15","msgDate":"2026-06-11","teacher":"謝欣芸","cls":"208班","lines":[["tof06",1,"罐",0,""],["veg27",30,"g",0,""],["veg01",1,"條",0,""],["veg05",2,"顆",0,""],["spi04",50,"g",0,""],["fru01",7,"顆",0,""],["spi07",20,"g",0,""],["spi01",180,"g",0,""],["veg13",60,"g",0,""],["mus07",30,"g",0,""],["veg29",2,"顆",0,""],["spi08",25,"g",0,""],["mus02",100,"g",0,""],["sea01",6,"尾",0,""]]},{"id":"t31","date":"2026-06-15","msgDate":"2026-06-11","teacher":"謝欣芸","cls":"108班","lines":[["fru02",40,"顆",0,"香吉士"],["fru01",10,"顆",0,""]]},{"id":"t32","date":"2026-08-31","msgDate":"2026-08-28","teacher":"珮筑","cls":"207班","lines":[["fru02",51,"顆",0,""],["fru03",2,"顆",0,"每顆約5公斤"]]},{"id":"t33","date":"2026-08-31","msgDate":"2026-08-28","teacher":"珮筑","cls":"208班","lines":[["fru02",48,"顆",0,""],["fru03",1,"顆",0,"每顆約5公斤"]]},{"id":"t34","date":"2026-08-31","msgDate":"2026-08-28","teacher":"陳美妤","cls":"109班","lines":[["veg01",33,"條",0,""],["veg03",11,"條",0,""]]},{"id":"t35","date":"2026-08-31","msgDate":"2026-08-28","teacher":"謝欣芸","cls":"207班","lines":[["veg01",17,"條",0,""]]},{"id":"t36","date":"2026-08-31","msgDate":"2026-08-28","teacher":"謝欣芸","cls":"208班","lines":[["veg01",16,"條",0,""]]},{"id":"t37","date":"2026-09-07","msgDate":"2026-09-01","teacher":"陳美妤","cls":"109班","lines":[["mea01",3000,"g",10,""],["veg01",10,"條",0,""],["veg04",5,"條",0,""],["spi03",15,"條",0,""],["spi02",700,"g",10,""],["spi04",250,"g",0,""],["mus04",20,"朵",0,""],["mus03",40,"片",0,""],["mus01",10,"支",0,""],["veg02",15,"條",0,""],["mea03",10,"副",0,""],["mus02",10,"條",0,""]]},{"id":"t38","date":"2026-09-07","msgDate":"2026-09-02","teacher":"謝欣芸","cls":"207班","lines":[["sea05",50,"g",0,""],["veg04",5,"個",0,""],["spi03",5,"條",0,""],["spi04",110,"g",0,""],["spi02",180,"g",0,""],["veg02",3,"條",0,""],["veg03",1,"條",0,""],["veg01",5,"條",0,""],["veg21",1000,"g",0,""],["spi01",60,"g",0,""],["mea02",250,"g",0,""],["mea01",1000,"g",5,""]]},{"id":"t39","date":"2026-09-07","msgDate":"2026-09-02","teacher":"謝欣芸","cls":"208班","lines":[["sea05",50,"g",0,""],["veg04",5,"個",0,""],["spi03",5,"條",0,""],["spi04",110,"g",0,""],["spi02",180,"g",0,""],["veg02",3,"條",0,""],["veg03",1,"條",0,""],["veg01",5,"條",0,""],["veg21",1000,"g",0,""],["spi01",60,"g",0,""],["mea02",250,"g",0,""],["mea01",1000,"g",5,""]]},{"id":"t40","date":"2026-09-07","msgDate":"2026-09-04","teacher":"珮筑","cls":"207班","lines":[["fru08",4,"顆",0,""],["fru03",2,"顆",0,"每顆約5公斤"],["fru07",16,"根",0,""]]},{"id":"t41","date":"2026-09-07","msgDate":"2026-09-04","teacher":"珮筑","cls":"208班","lines":[["fru08",4,"顆",0,""],["fru03",2,"顆",0,"每顆約5公斤"],["fru07",16,"根",0,""]]},{"id":"t42","date":"2026-09-14","msgDate":"2026-09-09","teacher":"謝欣芸","cls":"207班","lines":[["mus01",5,"支",0,"單支220g以上"],["veg02",7,"條",0,""],["veg03",3,"條",0,""],["veg01",3,"條",0,""],["spi01",250,"g",0,""],["veg04",3,"個",0,""],["spi03",2,"條",0,""],["veg06",5,"個",0,"單重150g以上"],["spi04",50,"g",0,""],["mea01",5,"塊",0,"單塊200g"],["sea01",6,"隻",0,""]]},{"id":"t43","date":"2026-09-14","msgDate":"2026-09-09","teacher":"謝欣芸","cls":"208班","lines":[["mus01",5,"支",0,"單支220g以上"],["veg02",7,"條",0,""],["veg03",3,"條",0,""],["veg01",3,"條",0,""],["spi01",250,"g",0,""],["veg04",3,"個",0,""],["spi03",2,"條",0,""],["veg06",5,"個",0,"單重150g以上"],["spi04",50,"g",0,""],["mea01",5,"塊",0,"單塊200g"],["sea01",6,"隻",0,""]]},{"id":"t44","date":"2026-09-14","msgDate":"2026-09-11","teacher":"陳美妤","cls":"109班","lines":[["tof02",10,"塊",0,"五香大豆干"],["veg02",10,"條",0,""],["spi03",10,"條",0,""],["spi01",100,"g",0,""],["mea03",5,"副",0,""],["gra02",50,"g",0,""],["veg04",5,"個",0,""],["spi04",50,"g",0,""],["mea01",2000,"g",10,""],["gra07",1,"罐",0,""],["gra08",1,"罐",0,""]]},{"id":"t45","date":"2026-09-16","msgDate":"2026-09-11","teacher":"珮筑","cls":"207班","lines":[["fru02",8,"顆",0,""],["fru04",4,"顆",0,""],["fru01",10,"顆",0,""]]},{"id":"t46","date":"2026-09-15","msgDate":"2026-09-11","teacher":"珮筑","cls":"208班","lines":[["fru02",8,"顆",0,""],["fru04",4,"顆",0,""],["fru08",1,"顆",0,""]]},{"id":"t47","date":"2026-09-21","msgDate":"2026-09-17","teacher":"謝欣芸","cls":"207班","lines":[["mus01",1000,"g",5,""],["tof05",1,"罐",0,""],["veg01",2,"條",0,""],["veg03",3,"條",0,""],["veg02",3,"條",0,""],["veg04",3,"個",0,""],["spi03",10,"條",0,""],["veg05",2,"顆",0,""],["spi02",250,"g",0,""],["spi01",150,"g",0,""],["mea01",1000,"g",5,""],["mea02",250,"g",0,""],["mea03",2,"副",0,""],["sea01",6,"隻",0,""]]},{"id":"t48","date":"2026-09-21","msgDate":"2026-09-17","teacher":"謝欣芸","cls":"208班","lines":[["mus01",1000,"g",5,""],["tof05",1,"罐",0,""],["veg01",2,"條",0,""],["veg03",3,"條",0,""],["veg02",3,"條",0,""],["veg04",3,"個",0,""],["spi03",10,"條",0,""],["veg05",2,"顆",0,""],["spi02",250,"g",0,""],["spi01",150,"g",0,""],["mea01",1000,"g",5,""],["mea02",250,"g",0,""],["mea03",3,"副",0,""],["sea01",6,"隻",0,""]]},{"id":"t49","date":"2026-09-21","msgDate":"2026-09-18","teacher":"陳美妤","cls":"109班","lines":[["mus04",5,"朵",0,""],["tof03",5,"顆",0,"單顆200g以上"],["mus01",3,"支",0,"中型"],["tof01",3,"盒",0,"中華豆腐"],["spi03",1,"條",0,""],["spi01",100,"g",0,""],["spi02",120,"g",3,""],["mus02",10,"支",0,""],["spi04",50,"g",0,""],["veg01",2,"條",0,""],["veg03",1,"條",0,""],["veg02",1,"條",0,""],["mea01",1000,"g",5,""]]},{"id":"t50","date":"2026-10-05","msgDate":"2026-10-02","teacher":"謝欣芸","cls":"207班","lines":[["mus01",5,"支",0,"單支約200g"],["veg05",2,"顆",0,""],["veg01",5,"條",0,""],["veg09",400,"g",0,""],["spi01",200,"g",0,""],["spi02",200,"g",0,""],["spi04",100,"g",0,""],["spi03",5,"條",0,""],["veg02",3,"條",0,""],["veg03",2,"條",0,""],["mea01",1000,"g",5,""],["sea03",5,"隻",0,"清肉單隻約150g"],["sea01",5,"尾",0,""]]},{"id":"t51","date":"2026-10-05","msgDate":"2026-10-02","teacher":"謝欣芸","cls":"208班","lines":[["mus01",5,"支",0,"單支約200g"],["veg05",2,"顆",0,""],["veg01",5,"條",0,""],["veg09",400,"g",0,""],["spi01",200,"g",0,""],["spi02",200,"g",0,""],["spi04",100,"g",0,""],["spi03",5,"條",0,""],["veg02",3,"條",0,""],["veg03",2,"條",0,""],["mea01",1000,"g",5,""],["sea03",5,"隻",0,"清肉單隻約150g"],["sea01",5,"尾",0,""]]},{"id":"t52","date":"2026-10-05","msgDate":"2026-10-02","teacher":"珮筑","cls":"208班","lines":[["fru10",3,"盒",0,""],["fru01",4,"顆",0,""]]},{"id":"t53","date":"2026-10-05","msgDate":"2026-10-02","teacher":"陳美妤","cls":"109班","lines":[["tof03",5,"顆",0,"單顆200g以上"],["mus01",3,"支",0,"中型"],["tof01",3,"盒",0,"中華豆腐"],["spi03",10,"條",0,""],["spi01",150,"g",0,""],["spi02",200,"g",5,""],["mus02",10,"支",0,""],["spi04",100,"g",0,""],["veg01",3,"條",0,""],["veg03",2,"條",0,""],["veg02",2,"條",0,""],["mea01",1000,"g",5,""]]},{"id":"t54","date":"2026-10-12","msgDate":"2026-10-07","teacher":"謝欣芸","cls":"207班","lines":[["tof06",2,"罐",0,""],["veg21",300,"g",0,""],["spi02",250,"g",0,""],["spi04",120,"g",0,""],["spi01",90,"g",0,""],["spi03",5,"條",0,""],["sea04",6,"尾",0,""],["sea02",1,"斤",0,"白蝦"],["mea02",1,"斤",0,""],["sea08",2,"隻",0,""]]},{"id":"t55","date":"2026-10-19","msgDate":"2026-10-12","teacher":"珮筑","cls":"207班","lines":[["fru09",9,"顆",0,""]]},{"id":"t56","date":"2026-10-19","msgDate":"2026-10-12","teacher":"珮筑","cls":"208班","lines":[["fru09",9,"顆",0,""]]},{"id":"t57","date":"2026-10-19","msgDate":"2026-10-14","teacher":"謝欣芸","cls":"207班","lines":[["sea05",75,"g",0,""],["sea07",2,"隻",0,""],["spi09",90,"g",0,""],["spi05",250,"g",0,""],["spi02",150,"g",0,""],["veg01",3,"條",0,""],["spi03",5,"條",0,""],["veg02",5,"條",0,""],["veg03",2,"條",0,""],["spi01",100,"g",0,""],["mea01",1000,"g",5,""],["sea01",5,"隻",0,""],["sea03",5,"隻",0,"清肉單隻約150g"],["sea02",2,"斤",0,"白蝦，中小型"]]},{"id":"t58","date":"2026-10-19","msgDate":"2026-10-14","teacher":"謝欣芸","cls":"208班","lines":[["sea05",75,"g",0,""],["sea07",2,"隻",0,""],["spi09",90,"g",0,""],["spi05",250,"g",0,""],["spi02",150,"g",0,""],["veg01",3,"條",0,""],["spi03",5,"條",0,""],["veg02",5,"條",0,""],["veg03",2,"條",0,""],["spi01",100,"g",0,""],["mea01",1000,"g",5,""],["sea01",5,"隻",0,""],["sea03",5,"隻",0,"清肉單隻約150g"],["sea02",2,"斤",0,"白蝦，中小型"]]},{"id":"t59","date":"2026-10-19","msgDate":"2026-10-14","teacher":"謝欣芸","cls":"109班","lines":[["tof04",10,"盒",0,""],["spi01",150,"g",0,""],["veg09",400,"g",0,""],["veg05",3,"顆",0,""],["veg01",5,"條",0,""],["spi04",200,"g",0,""],["spi02",400,"g",0,""],["veg04",5,"條",0,""],["veg10",3,"顆",0,""],["veg11",3,"顆",0,""],["spi03",10,"條",0,""],["veg03",4,"條",0,""],["mea01",1800,"g",10,""],["mea03",5,"副",0,"帶骨帶皮"]]},{"id":"t60","date":"2026-11-02","msgDate":"2026-10-29","teacher":"安東尼","cls":"207班","lines":[["spi01",3,"斤",0,""]]},{"id":"t61","date":"2026-11-02","msgDate":"2026-10-29","teacher":"安東尼","cls":"108班","lines":[["veg13",4,"斤",0,"紅色"],["veg05",5,"個",0,""],["spi08",4,"兩",0,""]]},{"id":"t62","date":"2026-11-02","msgDate":"2026-10-30","teacher":"陳美妤","cls":"109班","lines":[["mus01",5,"支",0,""],["veg09",1,"株",0,""],["veg01",5,"支",0,""],["spi01",500,"g",0,""],["spi02",400,"g",5,""],["mus02",10,"支",0,""],["veg03",2,"個",0,""],["mea03",2,"副",0,""],["veg06",5,"顆",0,""]]},{"id":"t63","date":"2026-11-02","msgDate":"2026-10-30","teacher":"謝欣芸","cls":"207班","lines":[["tof02",3,"塊",0,"五香大豆干"],["tof07",5,"顆",0,"單顆約180g"],["veg01",5,"條",0,""],["veg04",3,"條",0,""],["veg05",1,"顆",0,""],["veg07",5,"條",0,""],["spi01",120,"g",0,""],["spi02",350,"g",0,""],["spi03",10,"條",0,""],["mea02",250,"g",0,""],["mea01",1000,"g",5,""],["mea01",750,"g",5,""],["sea01",5,"隻",0,""]]},{"id":"t64","date":"2026-11-02","msgDate":"2026-10-30","teacher":"謝欣芸","cls":"208班","lines":[["tof02",3,"塊",0,"五香大豆干"],["tof07",5,"顆",0,"單顆約180g"],["veg01",5,"條",0,""],["veg04",2,"條",0,""],["veg05",2,"顆",0,""],["veg07",5,"條",0,""],["spi01",120,"g",0,""],["spi02",350,"g",0,""],["spi03",10,"條",0,""],["mea02",250,"g",0,""],["mea01",1000,"g",5,""],["mea01",750,"g",5,""],["sea01",5,"隻",0,""]]},{"id":"t65","date":"2026-11-09","msgDate":"2026-11-04","teacher":"謝欣芸","cls":"207班","lines":[["tof03",5,"顆",0,"單顆約200g"],["mus01",5,"支",0,"單支約150g"],["tof01",3,"盒",0,""],["spi03",5,"條",0,""],["veg02",3,"條",0,""],["spi01",180,"g",0,""],["spi02",400,"g",0,""],["mus02",1500,"g",0,"大支"],["veg01",2,"條",0,""],["mea01",1000,"g",5,""],["mea03",6,"副",0,"帶骨帶皮"]]},{"id":"t66","date":"2026-11-09","msgDate":"2026-11-04","teacher":"謝欣芸","cls":"208班","lines":[["tof03",5,"顆",0,"單顆約200g"],["mus01",5,"支",0,"單支約150g"],["tof01",3,"盒",0,""],["spi03",5,"條",0,""],["veg02",3,"條",0,""],["spi01",180,"g",0,""],["spi02",400,"g",0,""],["mus02",1500,"g",0,"大支"],["veg01",3,"條",0,""],["mea01",1000,"g",5,""],["mea03",6,"副",0,"帶骨帶皮"]]},{"id":"t67","date":"2026-11-09","msgDate":"2026-11-04","teacher":"陳美妤","cls":"109班","lines":[["mus01",10,"支",0,"中型"],["veg01",10,"支",0,""],["spi01",180,"支",0,"","原紀錄寫 180支（也可能是 180g），帶入後請確認"],["mea03",5,"副",0,""],["spi02",800,"g",10,""],["mus02",10,"支",0,""],["mea01",4000,"g",10,""],["spi03",15,"條",0,""],["sea04",10,"隻",0,""],["veg04",5,"個",0,""],["veg02",10,"條",0,""],["veg03",2,"條",0,""]]},{"id":"t68","date":"2026-11-16","msgDate":"2026-11-11","teacher":"謝欣芸","cls":"207班","lines":[["gra02",30,"g",0,"乾豆豉"],["mus03",5,"片",0,""],["sea05",20,"g",0,""],["mus01",5,"支",0,"單支150g以上"],["tof02",5,"塊",0,"五香大豆干"],["veg02",3,"條",0,""],["veg01",3,"條",0,""],["spi02",300,"g",0,""],["veg04",5,"條",0,""],["veg12",1000,"g",0,""],["spi03",5,"條",0,""],["mus02",5,"支",0,"單支100g以上"],["mea02",400,"g",0,""],["mea03",4,"副",0,""],["mea01",1000,"g",5,""]]},{"id":"t69","date":"2026-11-16","msgDate":"2026-11-11","teacher":"謝欣芸","cls":"208班","lines":[["gra02",30,"g",0,"乾豆豉"],["mus03",5,"片",0,""],["sea05",20,"g",0,""],["mus01",5,"支",0,"單支150g以上"],["tof02",5,"塊",0,"五香大豆干"],["veg02",3,"條",0,""],["veg01",3,"條",0,""],["spi02",300,"g",0,""],["veg04",5,"條",0,""],["veg12",1000,"g",0,""],["spi03",5,"條",0,""],["mus02",5,"支",0,"單支100g以上"],["mea02",400,"g",0,""],["mea03",4,"副",0,""],["mea01",1000,"g",5,""]]}],"base":{"rooms":["烘焙教室","中餐教室","飲調教室","餐服教室"],"teachers":["吳東安","董歆茹","陳美妤","劉倩吟","謝欣芸","廖珮筑"],"classes":["108","109","207","208","307","308"]}}</script>
+<script>
+/* Pure formatting helpers (no DOM) */
+var FOX = (function () {
+  'use strict';
+  var DOW = '日一二三四五六';
+  var UNIT_G = { g: 1, kg: 1000, '斤': 600, '兩': 37.5 };
+  function toAscii(s) {
+    return String(s == null ? '' : s)
+      .replace(/[０-９]/g, function (d) { return String.fromCharCode(d.charCodeAt(0) - 0xFEE0); })
+      .replace(/[．。]/g, '.').trim();
+  }
+  function parseQty(s) {
+    var t = toAscii(s);
+    if (t === '') return NaN;
+    if (t === '半') return 0.5;
+    var n = Number(t);
+    return isFinite(n) && n > 0 ? n : NaN;
+  }
+  function fmtNum(n) { return String(Math.round(n * 1000) / 1000); }
+  function fmtQty(q, u) {
+    if (u === '斤') {
+      var w = Math.floor(q + 1e-9), f = q - w;
+      if (f < 1e-9) return w + '斤';
+      if (Math.abs(f - 0.5) < 1e-9) return w ? w + '斤半' : '半斤';
+      var li = f * 16;
+      if (Math.abs(li - Math.round(li)) < 1e-9) return (w ? w + '斤' : '') + Math.round(li) + '兩';
+      return fmtNum(q) + '斤';
+    }
+    return fmtNum(q) + u;
+  }
+  function toGrams(q, u) { return Object.prototype.hasOwnProperty.call(UNIT_G, u) ? q * UNIT_G[u] : null; }
+  function lineText(item, l, q) {
+    if (q == null) q = parseQty(l.qty);
+    var s = item.name + ' ' + fmtQty(q, l.unit);
+    if (l.spec) s += '（' + l.spec + '）';
+    var p = l.portions | 0;
+    if (p >= 2) {
+      s += '，' + (item.cut ? '分切' : '分裝') + p + '份';
+      var g = toGrams(q, l.unit);
+      if (g != null) s += '（每份約' + Math.round(g / p) + 'g）';
+    }
+    return s;
+  }
+  function fmtDate(iso, withYear) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return '';
+    var y = +m[1], mo = +m[2], d = +m[3];
+    var dow = DOW[new Date(y, mo - 1, d).getDay()];
+    return (withYear ? y + '/' : '') + mo + '/' + d + '（' + dow + '）';
+  }
+  function buildMessage(o) {
+    var h = o.header;
+    var when = h.date ? fmtDate(h.date) + (h.time || '') : '';
+    var rows = [];
+    o.groups.forEach(function (g) { rows = rows.concat(g.rows); });
+    var out = [];
+    if (o.style === 'simple') {
+      if (when) out.push(when + ' 到貨');
+      var meta = [h.room, h.teacher, h.cls].filter(Boolean).join('｜');
+      if (meta) out.push(meta);
+      rows.forEach(function (r) { out.push(r); });
+    } else if (o.style === 'num') {
+      out.push('【' + (h.cls ? h.cls + ' ' : '') + '食材】' + (h.teacher || ''));
+      var w = [when ? '到貨：' + when : '', h.room || ''].filter(Boolean).join(' ');
+      if (w) out.push(w);
+      rows.forEach(function (r, i) { out.push((i + 1) + '. ' + r); });
+    } else {
+      out.push('【食材叫貨單】');
+      if (when) out.push('到貨：' + when);
+      if (h.room) out.push('教室：' + h.room);
+      if (h.teacher) out.push('老師：' + h.teacher);
+      if (h.cls) out.push('班級：' + h.cls);
+      out.push('');
+      o.groups.forEach(function (g) {
+        out.push(g.cat.emoji + ' ' + g.cat.name);
+        g.rows.forEach(function (r) { out.push(r); });
+      });
+      out.push('');
+      out.push('共 ' + rows.length + ' 項');
+    }
+    var note = String(o.note || '').trim();
+    if (note) out.push('備註：' + note);
+    if (o.receipt && o.receipt.on) out.push('請提供空白收據 ' + o.receipt.count + ' 張');
+    return out.join('\n');
+  }
+  return { toAscii: toAscii, parseQty: parseQty, fmtNum: fmtNum, fmtQty: fmtQty, toGrams: toGrams, lineText: lineText, fmtDate: fmtDate, buildMessage: buildMessage };
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+  var F = FOX;
+  var SEED = JSON.parse(document.getElementById('seed').textContent);
+  var CATS = SEED.cats;
+  var CAT = {};
+  CATS.forEach(function (c) { CAT[c.id] = c; });
+  var SHORT = { veg: '蔬菜', spi: '辛香料', mus: '菇筍', mea: '肉品', sea: '海鮮', fru: '水果', tof: '豆製品', gra: '雜糧' };
+  var DEFAULT_BASE = {
+    rooms: ['烘焙教室', '中餐教室', '飲調教室', '餐服教室'],
+    teachers: ['吳東安', '董歆茹', '陳美妤', '劉倩吟', '謝欣芸', '廖珮筑'],
+    classes: ['108', '109', '207', '208', '307', '308']
+  };
+  var BASE = {};
+  ['rooms', 'teachers', 'classes'].forEach(function (k) {
+    var v = SEED.base && Array.isArray(SEED.base[k]) ? SEED.base[k] : DEFAULT_BASE[k];
+    BASE[k] = v.map(String);
+  });
+  var SEED_IDS = {};
+  SEED.items.forEach(function (i) { SEED_IDS[i.id] = true; });
+  var AUTH = window.FO_AUTH && typeof window.FO_AUTH === 'object' ? window.FO_AUTH : null;
+  var GROUPS = {
+    room: { key: 'rooms', label: '教室', ph: '輸入教室名稱' },
+    teacher: { key: 'teachers', label: '老師', ph: '輸入老師姓名' },
+    cls: { key: 'classes', label: '班級', ph: '例如：108(1)、西餐研習' }
+  };
+  var PORTION_BASE = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20];
+  var CUT_CATS = { mea: 1, sea: 1 };
+  var K = { custom: 'fo1.custom', draft: 'fo1.draft', records: 'fo1.records', prefs: 'fo1.prefs' };
+  var IS_PHONE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var FINE_POINTER = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+  var REDUCE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var WIDE = window.matchMedia ? window.matchMedia('(min-width: 1024px)') : { matches: true };
+
+  function $(s, el) { return (el || document).querySelector(s); }
+  function $$(s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function uniq(a) { var out = []; a.forEach(function (x) { if (x === '' || x == null) return; if (out.indexOf(x) < 0) out.push(x); }); return out; }
+  function arr(x) { return Array.isArray(x) ? x : []; }
+  function obj(x) { return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; }
+  function clampInt(v, lo, hi, d) { var n = parseInt(v, 10); if (!isFinite(n)) return d; return Math.min(hi, Math.max(lo, n)); }
+  function splitList(s) { return uniq(String(s || '').split(/[、,，;；\s]+/).map(function (x) { return x.trim(); })); }
+  function cleanText(s) { return String(s || '').trim().replace(/\s+/g, ' ').slice(0, 30); }
+
+  /* ---------- storage ---------- */
+  var storageOK = true;
+  try { localStorage.setItem('fo1.t', '1'); localStorage.removeItem('fo1.t'); } catch (e) { storageOK = false; }
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  };
+
+  function notBase(k) { return function (v) { return BASE[k].indexOf(v) < 0; }; }
+  function normalizeCustom(c) {
+    c = obj(c);
+    var hid = obj(c.hidden);
+    var items = arr(c.items).filter(function (i) { return i && typeof i.id === 'string' && i.name && CAT[i.cat] && !SEED_IDS[i.id]; }).map(function (i) {
+      return { id: i.id, cat: i.cat, name: String(i.name), std: String(i.name), alias: arr(i.alias), units: uniq(arr(i.units).map(String)), specs: uniq(arr(i.specs).map(String)), cut: !!CUT_CATS[i.cat], quick: {}, custom: true };
+    });
+    return {
+      rooms: uniq(arr(c.rooms).map(String)).filter(notBase('rooms')), teachers: uniq(arr(c.teachers).map(String)).filter(notBase('teachers')), classes: uniq(arr(c.classes).map(String)).filter(notBase('classes')),
+      hidden: { rooms: uniq(arr(hid.rooms)), teachers: uniq(arr(hid.teachers)), classes: uniq(arr(hid.classes)) },
+      units: obj(c.units), specs: obj(c.specs), quick: obj(c.quick),
+      portions: uniq(arr(c.portions).map(Number).filter(function (n) { return n >= 2 && n <= 999 && Math.floor(n) === n; })),
+      items: items,
+      times: uniq(arr(c.times).filter(function (t) { return /^\d{2}:\d{2}$/.test(t); })).slice(0, 6)
+    };
+  }
+  function blankDraft() { return { header: { date: '', time: '', room: '', teacher: '', cls: '' }, lines: {}, receipt: { on: false, count: 1 }, note: '' }; }
+  function normLine(l) {
+    if (!l || typeof l !== 'object') return null;
+    return { qty: l.qty == null ? '' : String(l.qty), unit: String(l.unit || ''), portions: clampInt(l.portions, 0, 999, 0), spec: String(l.spec || ''), warn: l.warn ? String(l.warn) : '' };
+  }
+  function normalizeDraft(d) {
+    var b = blankDraft();
+    if (!d || typeof d !== 'object') return b;
+    var h = obj(d.header);
+    ['date', 'time', 'room', 'teacher', 'cls'].forEach(function (k) { if (typeof h[k] === 'string') b.header[k] = h[k]; });
+    var ls = obj(d.lines);
+    Object.keys(ls).forEach(function (id) {
+      var clean = arr(ls[id]).map(normLine).filter(Boolean);
+      if (clean.length) b.lines[id] = clean;
+    });
+    var r = obj(d.receipt);
+    b.receipt.on = !!r.on;
+    b.receipt.count = clampInt(r.count, 1, 99, 1);
+    b.note = String(d.note || '');
+    return b;
+  }
+
+  var custom = normalizeCustom(store.get(K.custom, {}));
+  var records = arr(store.get(K.records, [])).filter(function (r) { return r && r.id && Array.isArray(r.lines); });
+  var prefs = obj(store.get(K.prefs, {}));
+  if (['m', 'l', 'xl'].indexOf(prefs.font) < 0) prefs.font = 'm';
+  if (['cat', 'simple', 'num'].indexOf(prefs.style) < 0) prefs.style = 'cat';
+  var state = normalizeDraft(store.get(K.draft, null));
+  var ui = { open: {}, q: '', onlySel: false, adding: null, groupAdding: '', infoFolded: false, recTab: 'mine', recQ: '', recCls: '', expanded: {} };
+
+  var ITEMS = [], ITEM = {};
+  function rebuildIndex() {
+    ITEMS = SEED.items.concat(custom.items);
+    ITEM = {};
+    ITEMS.forEach(function (i) { ITEM[i.id] = i; });
+  }
+  function unitsOf(item) { return uniq(item.units.concat(arr(custom.units[item.id]))); }
+  function specsOf(item) { return uniq(item.specs.concat(arr(custom.specs[item.id]))); }
+  function quickOf(item, unit) {
+    var base = arr(item.quick && item.quick[unit]);
+    var learned = arr(obj(custom.quick[item.id])[unit]);
+    return uniq(base.concat(learned).map(Number).filter(function (n) { return n > 0; })).sort(function (a, b) { return a - b; });
+  }
+  function optionsOf(g) {
+    var k = GROUPS[g].key;
+    var hid = custom.hidden[k];
+    return uniq(BASE[k].filter(function (v) { return hid.indexOf(v) < 0; }).concat(custom[k]));
+  }
+
+  var saveTimer = null;
+  function saveDraft() { clearTimeout(saveTimer); saveTimer = setTimeout(function () { store.set(K.draft, state); }, 250); }
+  function saveDraftNow() { clearTimeout(saveTimer); store.set(K.draft, state); }
+  function saveCustom() { store.set(K.custom, custom); }
+  function saveRecords() { store.set(K.records, records); }
+  function savePrefs() { store.set(K.prefs, prefs); }
+
+  /* ---------- helpers ---------- */
+  function isoToday(off) {
+    var d = new Date();
+    d.setDate(d.getDate() + (off || 0));
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+  function validLine(l) { return F.parseQty(l.qty) > 0 && !!l.unit; }
+  function isSelected(id) { var ls = state.lines[id]; return !!(ls && ls.some(validLine)); }
+  function selCount() { var n = 0; ITEMS.forEach(function (i) { if (isSelected(i.id)) n++; }); return n; }
+  function newLine(item) { return { qty: '', unit: unitsOf(item)[0] || '', portions: 0, spec: '', warn: '' }; }
+  function stepOf(unit) { return unit === 'g' ? 10 : (unit === '斤' || unit === 'kg') ? 0.5 : 1; }
+  function cleanDraft() {
+    Object.keys(state.lines).forEach(function (id) { if (!ITEM[id]) delete state.lines[id]; });
+  }
+  function selectedRows() {
+    var rows = [];
+    CATS.forEach(function (c) {
+      ITEMS.forEach(function (item) {
+        if (item.cat !== c.id) return;
+        var ls = state.lines[item.id];
+        if (!ls) return;
+        ls.forEach(function (l) {
+          var q = F.parseQty(l.qty);
+          if (q > 0 && l.unit) rows.push({ cat: c, item: item, line: l, text: F.lineText(item, l, q) });
+        });
+      });
+    });
+    return rows;
+  }
+  function groupsOf(rows) {
+    var groups = [], last = null;
+    rows.forEach(function (r) {
+      if (!last || last.cat !== r.cat) { last = { cat: r.cat, rows: [] }; groups.push(last); }
+      last.rows.push(r.text);
+    });
+    return groups;
+  }
+  function messageFor(rows) {
+    return F.buildMessage({ style: prefs.style, header: state.header, groups: groupsOf(rows), note: state.note, receipt: state.receipt });
+  }
+  function sampleMessage() {
+    var it = function (id) { return SEED.items.filter(function (i) { return i.id === id; })[0]; };
+    var rows = [
+      { cat: CAT.veg, text: F.lineText(it('veg01'), { qty: '2', unit: '條', portions: 0, spec: '' }) },
+      { cat: CAT.spi, text: F.lineText(it('spi01'), { qty: '100', unit: 'g', portions: 0, spec: '' }) },
+      { cat: CAT.mea, text: F.lineText(it('mea01'), { qty: '600', unit: 'g', portions: 6, spec: '' }) }
+    ];
+    return F.buildMessage({ style: prefs.style, header: { date: isoToday(1), time: '08:00', room: '中餐教室', teacher: '（老師）', cls: '207' }, groups: groupsOf(rows), note: '', receipt: { on: true, count: 1 } });
+  }
+  function collectIssues() {
+    var h = state.header, miss = [];
+    if (!h.date) miss.push('到貨日期');
+    if (!h.time) miss.push('到貨時間');
+    if (!h.room) miss.push('到貨教室');
+    if (!h.teacher) miss.push('老師');
+    if (!h.cls) miss.push('班級');
+    var noQty = [], warns = [];
+    ITEMS.forEach(function (item) {
+      var ls = state.lines[item.id];
+      if (!ls) return;
+      ls.forEach(function (l) {
+        if (!validLine(l)) noQty.push(item.name);
+        if (l.warn) warns.push(item.name + '：' + l.warn);
+      });
+    });
+    return { miss: miss, noQty: uniq(noQty), warns: warns, rows: selectedRows() };
+  }
+  function sumHTML(item) {
+    var ls = state.lines[item.id];
+    if (!ls || !ls.length) return '';
+    var v = ls.filter(validLine);
+    if (!v.length) return ui.open[item.id] ? '' : '<span class="sum-warn">未填份量</span>';
+    var l = v[0];
+    var s = F.fmtQty(F.parseQty(l.qty), l.unit);
+    if ((l.portions | 0) >= 2) s += '・' + l.portions + '份';
+    if (ls.length > 1) s += ' 等' + ls.length + '筆';
+    return esc(s);
+  }
+  function lineOutText(item, l) { return validLine(l) ? F.lineText(item, l) : '（先填份量）'; }
+
+  /* ---------- info card ---------- */
+  function renderInfo() {
+    var h = state.header;
+    $('#fDate').value = h.date;
+    $('#fDow').textContent = h.date ? (F.fmtDate(h.date).match(/（.）/) || [''])[0] : '';
+    $('#fTime').value = h.time;
+    $('#dateQuick').innerHTML = [['今天', 0], ['明天', 1], ['後天', 2]].map(function (d) {
+      var iso = isoToday(d[1]);
+      return '<button type="button" class="chip chip-sm" data-date="' + iso + '" aria-pressed="' + (h.date === iso) + '">' + d[0] + ' ' + esc(F.fmtDate(iso)) + '</button>';
+    }).join('');
+    var times = custom.times;
+    $('#timeQuick').innerHTML = (times.length
+      ? times.map(function (t) { return '<button type="button" class="chip chip-sm" data-time="' + esc(t) + '" aria-pressed="' + (h.time === t) + '">' + esc(t) + '</button>'; }).join('')
+      : '<p class="hint">用過的時間會出現在這裡，下次點一下就好</p>') +
+      (h.time ? '<button type="button" class="chip chip-sm chip-add" data-time="">清除時間</button>' : '');
+    Object.keys(GROUPS).forEach(renderGroup);
+    renderInfoSum();
+  }
+  function renderGroup(g) {
+    var box = $('.chips[data-group="' + g + '"]');
+    var cur = state.header[g];
+    var opts = optionsOf(g);
+    if (cur && opts.indexOf(cur) < 0) opts.push(cur);
+    var html = opts.map(function (v) {
+      return '<button type="button" class="chip" data-g="' + g + '" data-v="' + esc(v) + '" aria-pressed="' + (cur === v) + '">' + esc(v) + '</button>';
+    }).join('');
+    if (ui.groupAdding === g) {
+      html += '<div class="addrow" style="flex-basis:100%"><input class="inp" id="gadd-' + g + '" maxlength="20" placeholder="' + esc(GROUPS[g].ph) + '" aria-label="新增' + GROUPS[g].label + '">' +
+        '<button type="button" class="btn btn-sm" data-gaddok="' + g + '">加入</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-gaddcancel="' + g + '">取消</button></div>';
+    } else {
+      html += '<button type="button" class="chip chip-add" data-gadd="' + g + '">＋ 新增' + GROUPS[g].label + '</button>';
+    }
+    box.innerHTML = html;
+  }
+  function infoSummary() {
+    var h = state.header, parts = [];
+    parts.push(h.date ? esc(F.fmtDate(h.date) + (h.time || '')) : '<span class="miss">未選日期</span>');
+    parts.push(h.room ? esc(h.room) : '<span class="miss">未選教室</span>');
+    parts.push(h.teacher ? esc(h.teacher) : '<span class="miss">未選老師</span>');
+    parts.push(h.cls ? esc(h.cls) : '<span class="miss">未選班級</span>');
+    return parts;
+  }
+  function renderInfoSum() {
+    var sum = $('#infoSum');
+    sum.hidden = !ui.infoFolded;
+    $('#infoBody').hidden = ui.infoFolded;
+    var fold = $('#btnInfoFold');
+    fold.textContent = ui.infoFolded ? '展開' : '收合';
+    fold.setAttribute('aria-expanded', String(!ui.infoFolded));
+    if (ui.infoFolded) sum.innerHTML = infoSummary().map(function (p) { return '<span>' + p + '</span>'; }).join('');
+  }
+
+  /* ---------- list ---------- */
+  function itemClass(item) {
+    return 'item' + (isSelected(item.id) ? ' is-sel' : '') + (ui.open[item.id] ? ' is-open' : '');
+  }
+  function aliasText(item) {
+    return uniq(arr(item.alias).filter(function (a) { return a !== item.std && a !== item.name; })).join('、');
+  }
+  function headHTML(item) {
+    var open = !!ui.open[item.id];
+    var alias = aliasText(item);
+    var ico = open ? '︿' : (isSelected(item.id) ? '✓' : '＋');
+    return '<button type="button" class="item-head" data-act="toggle" aria-expanded="' + open + '">' +
+      '<span><span class="item-name">' + esc(item.name) + (item.custom ? '<span class="tag">自訂</span>' : '') + '</span>' +
+      (alias ? '<span class="item-alias">' + esc(alias) + '</span>' : '') + '</span>' +
+      '<span class="item-sum">' + sumHTML(item) + '</span>' +
+      '<span class="item-ico" aria-hidden="true">' + ico + '</span></button>';
+  }
+  function selectHTML(f, options, current, label) {
+    return '<select data-f="' + f + '" aria-label="' + esc(label) + '">' + options.map(function (o) {
+      return '<option value="' + esc(o.v) + '"' + (String(o.v) === String(current) ? ' selected' : '') + '>' + esc(o.t) + '</option>';
+    }).join('') + '</select>';
+  }
+  function addRowHTML(kind) {
+    var ph = { unit: '新增單位，例如：包、袋', spec: '新增規格，例如：去皮、切塊', portions: '輸入份數（2 以上的整數）' }[kind];
+    return '<div class="addrow"><input class="inp" data-addinput="' + kind + '"' + (kind === 'portions' ? ' inputmode="numeric"' : '') + ' maxlength="20" placeholder="' + ph + '" aria-label="' + ph + '">' +
+      '<button type="button" class="btn btn-sm" data-act="addok">加入</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-act="addcancel">取消</button></div>';
+  }
+  function lineHTML(item, l, i, multi) {
+    var units = uniq(unitsOf(item).concat([l.unit]));
+    var specs = uniq(specsOf(item).concat([l.spec]));
+    var portions = uniq(PORTION_BASE.concat(custom.portions, [(l.portions | 0) >= 2 ? (l.portions | 0) : null])).sort(function (a, b) { return a - b; });
+    var q = F.parseQty(l.qty);
+    var quick = l.unit ? quickOf(item, l.unit) : [];
+    var ad = ui.adding && ui.adding.id === item.id && ui.adding.li === i ? ui.adding.kind : '';
+    var nm = item.name;
+    var html = '<div class="line" data-li="' + i + '">';
+    if (multi) html += '<div class="line-no">第 ' + (i + 1) + ' 筆</div>';
+    html += '<div class="fgrid">';
+    html += '<div class="frow"><span class="flab">份量</span><div class="qty">' +
+      '<button type="button" class="qbtn" data-act="dec" aria-label="' + esc(nm) + ' 份量減少">−</button>' +
+      '<input class="inp qin" data-f="qty" inputmode="decimal" autocomplete="off" value="' + esc(l.qty) + '" placeholder="數量" aria-label="' + esc(nm) + ' 份量">' +
+      '<button type="button" class="qbtn" data-act="inc" aria-label="' + esc(nm) + ' 份量增加">＋</button></div><span></span></div>';
+    html += '<div class="frow"><span class="flab">單位</span>' +
+      selectHTML('unit', units.map(function (u) { return { v: u, t: u }; }), l.unit, nm + ' 單位') +
+      '<button type="button" class="addbtn" data-act="add" data-kind="unit" aria-label="新增 ' + esc(nm) + ' 的單位">＋</button></div>';
+    html += '</div>';
+    if (ad === 'unit') html += addRowHTML('unit');
+    if (quick.length) {
+      html += '<div class="quick"><span class="hint">常用</span>' + quick.map(function (v) {
+        return '<button type="button" class="qchip" data-act="quick" data-v="' + v + '" aria-pressed="' + (v === q) + '">' + esc(F.fmtQty(v, l.unit)) + '</button>';
+      }).join('') + '</div>';
+    }
+    html += '<div class="fgrid">';
+    html += '<div class="frow"><span class="flab">分成</span>' +
+      selectHTML('portions', [{ v: 0, t: '不分' }].concat(portions.map(function (p) { return { v: p, t: p + ' 份' }; })), l.portions | 0, nm + ' 分成幾份') +
+      '<button type="button" class="addbtn" data-act="add" data-kind="portions" aria-label="自訂 ' + esc(nm) + ' 份數">＋</button></div>';
+    html += '<div class="frow"><span class="flab">規格</span>' +
+      selectHTML('spec', [{ v: '', t: '不指定' }].concat(specs.map(function (s) { return { v: s, t: s }; })), l.spec, nm + ' 規格') +
+      '<button type="button" class="addbtn" data-act="add" data-kind="spec" aria-label="新增 ' + esc(nm) + ' 的規格">＋</button></div>';
+    html += '</div>';
+    if (ad === 'portions') html += addRowHTML('portions');
+    if (ad === 'spec') html += addRowHTML('spec');
+    if (l.warn) html += '<div class="warn-line">⚠ ' + esc(l.warn) + '</div>';
+    html += '<div class="line-out"><b>訊息</b><span class="line-out-t">' + esc(lineOutText(item, l)) + '</span></div>';
+    html += '<div class="line-foot"><button type="button" class="del" data-act="delline">刪除這筆</button></div>';
+    html += '</div>';
+    return html;
+  }
+  function editorHTML(item) {
+    var ls = state.lines[item.id] || [];
+    return '<div class="editor">' + ls.map(function (l, i) { return lineHTML(item, l, i, ls.length > 1); }).join('') +
+      '<div class="editor-foot"><button type="button" class="btn btn-ghost btn-sm" data-act="addline">＋ 再加一筆（不同規格）</button>' +
+      '<button type="button" class="btn btn-sm" data-act="done">完成</button></div></div>';
+  }
+  function itemInner(item) { return headHTML(item) + (ui.open[item.id] ? editorHTML(item) : ''); }
+  function renderList() {
+    var html = CATS.map(function (c) {
+      var items = ITEMS.filter(function (i) { return i.cat === c.id; });
+      return '<section class="cat" id="cat-' + c.id + '" data-cat="' + c.id + '">' +
+        '<h3 class="cat-h"><span aria-hidden="true">' + c.emoji + '</span>' + esc(c.name) + '<span class="cat-n">' + items.length + ' 項</span></h3>' +
+        '<ul class="items">' + items.map(function (item) {
+          return '<li class="' + itemClass(item) + '" data-id="' + esc(item.id) + '">' + itemInner(item) + '</li>';
+        }).join('') + '</ul>' +
+        '<button type="button" class="add-item" data-additem="' + c.id + '">＋ 新增食材到「' + esc(c.name) + '」</button></section>';
+    }).join('');
+    $('#list').innerHTML = html + '<div class="empty" id="emptyBox" hidden></div>';
+    applyFilter();
+  }
+  function liOf(id) { return document.querySelector('.item[data-id="' + id.replace(/"/g, '') + '"]'); }
+  function renderItem(id) {
+    var li = liOf(id), item = ITEM[id];
+    if (!li || !item) return;
+    li.className = itemClass(item);
+    li.innerHTML = itemInner(item);
+  }
+  function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, '').replace(/蕃/g, '番').replace(/臺/g, '台'); }
+  function matches(item, q) {
+    if (!q) return true;
+    var hay = norm([item.name, item.std].concat(arr(item.alias)).join('|'));
+    return hay.indexOf(q) >= 0;
+  }
+  function applyFilter() {
+    var q = norm(ui.q), total = 0;
+    $$('#list .cat').forEach(function (sec) {
+      var vis = 0;
+      $$('.item', sec).forEach(function (li) {
+        var id = li.getAttribute('data-id'), item = ITEM[id];
+        var show = !!item && matches(item, q) && (!ui.onlySel || isSelected(id) || !!ui.open[id]);
+        li.hidden = !show;
+        if (show) vis++;
+      });
+      sec.hidden = vis === 0;
+      var addBtn = $('.add-item', sec);
+      if (addBtn) addBtn.hidden = !!q || ui.onlySel;
+      total += vis;
+    });
+    var box = $('#emptyBox');
+    if (!box) return;
+    if (total === 0) {
+      box.hidden = false;
+      if (ui.onlySel && !q) {
+        box.innerHTML = '<p style="margin:0">還沒選任何食材。關掉「只看已選」就能看到全部 ' + ITEMS.length + ' 項。</p>';
+      } else {
+        box.innerHTML = '<p style="margin:0">找不到「' + esc(ui.q) + '」。</p>' +
+          '<button type="button" class="btn btn-o btn-sm" data-additem="veg" data-name="' + esc(ui.q) + '">＋ 把「' + esc(ui.q) + '」新增成食材</button>';
+      }
+    } else box.hidden = true;
+  }
+  function renderNav() {
+    $('#catnav').innerHTML = CATS.map(function (c) {
+      var n = ITEMS.filter(function (i) { return i.cat === c.id && isSelected(i.id); }).length;
+      return '<button type="button" class="nav-chip" data-cat="' + c.id + '"><span aria-hidden="true">' + c.emoji + '</span>' + SHORT[c.id] + (n ? '<span class="badge" aria-label="已選 ' + n + ' 項">' + n + '</span>' : '') + '</button>';
+    }).join('');
+  }
+
+  /* ---------- output ---------- */
+  var outQueued = false;
+  function scheduleOutput() {
+    if (outQueued) return;
+    outQueued = true;
+    (window.requestAnimationFrame || setTimeout)(function () { outQueued = false; renderOutput(); });
+  }
+  function renderOutput() {
+    var is = collectIssues();
+    var text = is.rows.length ? messageFor(is.rows) : '';
+    var pre = $('#preview');
+    if (text) {
+      pre.textContent = text;
+      pre.classList.remove('is-sample');
+      $('#previewLabel').textContent = 'LINE 訊息預覽';
+    } else {
+      pre.textContent = sampleMessage();
+      pre.classList.add('is-sample');
+      $('#previewLabel').textContent = '範例（選好食材、填好份量後，會換成你的清單）';
+    }
+    var n = selCount();
+    $('#selPill').textContent = '已選 ' + n + ' 項';
+    $('#rowPill').textContent = is.rows.length + ' 項';
+    $('#bbCount').textContent = '已選 ' + n + ' 項';
+    var h = state.header;
+    var info = [h.date ? F.fmtDate(h.date) + (h.time || '') : '', h.room, h.teacher, h.cls].filter(Boolean).join('・');
+    $('#bbInfo').textContent = info || '到貨資訊還沒填';
+    var wb = $('#warnbox'), msgs = [];
+    if (is.rows.length || n) {
+      if (is.miss.length) msgs.push('還沒選：' + is.miss.join('、'));
+      if (is.noQty.length) msgs.push('沒填份量（不會出現在訊息裡）：' + is.noQty.join('、'));
+      if (is.warns.length) msgs.push('要再確認：' + is.warns.join('；'));
+    }
+    wb.hidden = !msgs.length;
+    wb.innerHTML = msgs.map(function (m) { return '<p>' + esc(m) + '</p>'; }).join('');
+    var line = $('#btnLine');
+    line.hidden = !IS_PHONE;
+    line.href = 'https://line.me/R/share?text=' + encodeURIComponent(text);
+    $$('#styleSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-style') === prefs.style)); });
+    $('#rcpOn').checked = state.receipt.on;
+    var rn = $('#rcpN');
+    if (document.activeElement !== rn) rn.value = state.receipt.count;
+    $('#rcpRow').style.opacity = state.receipt.on ? '1' : '.5';
+    var note = $('#note');
+    if (document.activeElement !== note) note.value = state.note;
+    if (ui.infoFolded) renderInfoSum();
+  }
+
+  /* ---------- item actions ---------- */
+  function changed(id, rerender) {
+    saveDraft();
+    if (rerender) renderItem(id);
+    renderNav();
+    scheduleOutput();
+    if (ui.onlySel) applyFilter();
+  }
+  function focusIn(id, sel) {
+    var li = liOf(id);
+    if (!li) return;
+    var el = li.querySelector(sel);
+    if (el) { try { el.focus({ preventScroll: false }); } catch (e) { el.focus(); } }
+  }
+  function openItem(id) {
+    var item = ITEM[id];
+    if (!item) return;
+    ui.open[id] = true;
+    if (!state.lines[id] || !state.lines[id].length) state.lines[id] = [newLine(item)];
+    changed(id, true);
+    if (FINE_POINTER) focusIn(id, '.line[data-li="0"] .qin');
+  }
+  function closeItem(id) {
+    delete ui.open[id];
+    if (ui.adding && ui.adding.id === id) ui.adding = null;
+    var ls = state.lines[id];
+    if (ls) {
+      var keep = ls.filter(function (l) { return l.qty !== '' || l.spec || (l.portions | 0) >= 2; });
+      if (keep.length) state.lines[id] = keep; else delete state.lines[id];
+    }
+    changed(id, true);
+  }
+  function setQty(id, i, v) {
+    var l = state.lines[id] && state.lines[id][i];
+    if (!l) return;
+    l.qty = String(v);
+    l.warn = '';
+    changed(id, true);
+  }
+  function stepQty(id, i, dir) {
+    var l = state.lines[id] && state.lines[id][i];
+    if (!l) return;
+    var st = stepOf(l.unit), q = F.parseQty(l.qty);
+    if (!(q > 0)) q = 0;
+    q = Math.max(0, Math.round((q + dir * st) * 1000) / 1000);
+    l.qty = q > 0 ? String(q) : '';
+    l.warn = '';
+    changed(id, true);
+  }
+  function delLine(id, i) {
+    var ls = state.lines[id];
+    if (!ls) return;
+    ls.splice(i, 1);
+    if (ui.adding && ui.adding.id === id) ui.adding = null;
+    if (!ls.length) { delete state.lines[id]; delete ui.open[id]; }
+    changed(id, true);
+  }
+  function addLine(id) {
+    var item = ITEM[id];
+    if (!state.lines[id]) state.lines[id] = [];
+    state.lines[id].push(newLine(item));
+    changed(id, true);
+    if (FINE_POINTER) focusIn(id, '.line[data-li="' + (state.lines[id].length - 1) + '"] .qin');
+  }
+  function commitAdd(id) {
+    var a = ui.adding, item = ITEM[id];
+    if (!a || a.id !== id || !item) return;
+    var li = liOf(id), inp = li && li.querySelector('[data-addinput]');
+    var v = cleanText(inp ? inp.value : '');
+    if (!v) { if (inp) inp.focus(); return; }
+    var l = state.lines[id][a.li];
+    if (!l) return;
+    if (a.kind === 'unit') {
+      if (unitsOf(item).indexOf(v) < 0) { custom.units[id] = arr(custom.units[id]).concat([v]); }
+      l.unit = v;
+    } else if (a.kind === 'spec') {
+      if (specsOf(item).indexOf(v) < 0) { custom.specs[id] = arr(custom.specs[id]).concat([v]); }
+      l.spec = v;
+    } else {
+      var n = parseInt(F.toAscii(v), 10);
+      if (!(n >= 2 && n <= 999)) { toast('份數請輸入 2 以上的整數'); if (inp) inp.focus(); return; }
+      if (PORTION_BASE.indexOf(n) < 0 && custom.portions.indexOf(n) < 0) custom.portions.push(n);
+      l.portions = n;
+    }
+    l.warn = '';
+    ui.adding = null;
+    saveCustom();
+    changed(id, true);
+    toast('已新增並記住，下次也選得到');
+  }
+
+  /* ---------- copy / share / records ---------- */
+  function copyText(text) {
+    function legacy() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) { return false; }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacy(); });
+    }
+    return Promise.resolve(legacy());
+  }
+  function learnFromOrder() {
+    selectedRows().forEach(function (r) {
+      var id = r.item.id, u = r.line.unit, q = F.parseQty(r.line.qty);
+      if (arr(r.item.quick && r.item.quick[u]).indexOf(q) >= 0) return;
+      var per = obj(custom.quick[id]);
+      per[u] = uniq([q].concat(arr(per[u]))).slice(0, 6);
+      custom.quick[id] = per;
+    });
+    if (state.header.time) custom.times = uniq([state.header.time].concat(custom.times)).slice(0, 6);
+    saveCustom();
+  }
+  function snapshotLines() {
+    return selectedRows().map(function (r) {
+      return { id: r.item.id, name: r.item.name, cat: r.item.cat, qty: r.line.qty, unit: r.line.unit, portions: r.line.portions | 0, spec: r.line.spec };
+    });
+  }
+  function saveRecord(text, name) {
+    var rec = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), ts: Date.now(), name: name || '', header: JSON.parse(JSON.stringify(state.header)), lines: snapshotLines(), receipt: { on: state.receipt.on, count: state.receipt.count }, note: state.note, text: text };
+    if (records[0] && records[0].text === text && !name) {
+      records[0].ts = rec.ts;
+    } else {
+      records.unshift(rec);
+      if (records.length > 200) records.length = 200;
+    }
+    saveRecords();
+    return records[0];
+  }
+  function afterSend(text) {
+    saveRecord(text);
+    learnFromOrder();
+    renderInfo();
+  }
+  function doCopy() {
+    var rows = selectedRows();
+    var text = messageFor(rows);
+    copyText(text).then(function (ok) {
+      if (ok) { afterSend(text); toast('已複製！到 LINE 群組貼上就好'); }
+      else showManualCopy(text);
+    });
+  }
+  function issueHTML(is) {
+    var parts = [];
+    if (is.miss.length) parts.push('<li>還沒選：' + esc(is.miss.join('、')) + '</li>');
+    if (is.noQty.length) parts.push('<li>沒填份量，不會出現在訊息裡：' + esc(is.noQty.join('、')) + '</li>');
+    if (is.warns.length) parts.push('<li>要再確認：' + esc(is.warns.join('；')) + '</li>');
+    return '<ul>' + parts.join('') + '</ul>';
+  }
+  function hasIssues(is) { return is.miss.length || is.noQty.length || is.warns.length; }
+  function onCopy() {
+    var is = collectIssues();
+    if (!is.rows.length) { toast('還沒有填好份量的食材'); return; }
+    if (hasIssues(is)) {
+      modal({ title: '還有地方沒填好', html: issueHTML(is), buttons: [
+        { label: '回去補', kind: 'ghost' },
+        { label: '仍要複製', kind: 'primary', onClick: function () { doCopy(); } }
+      ] });
+      return;
+    }
+    doCopy();
+  }
+  function onLine(e) {
+    var is = collectIssues();
+    if (!is.rows.length) { e.preventDefault(); toast('還沒有填好份量的食材'); return; }
+    var text = messageFor(is.rows);
+    e.currentTarget.href = 'https://line.me/R/share?text=' + encodeURIComponent(text);
+    if (hasIssues(is)) {
+      e.preventDefault();
+      modal({ title: '還有地方沒填好', html: issueHTML(is), buttons: [
+        { label: '回去補', kind: 'ghost' },
+        { label: '仍要用 LINE 分享', kind: 'primary', href: 'https://line.me/R/share?text=' + encodeURIComponent(text), onClick: function () { afterSend(text); } }
+      ] });
+      return;
+    }
+    afterSend(text);
+  }
+  function showManualCopy(text) {
+    modal({ title: '這個瀏覽器不讓我直接複製', html: '<p>請在下面的框框裡長按（電腦按 Ctrl+A），全選後再複製。</p><textarea class="inp copybox" id="manualCopy" readonly></textarea>', buttons: [{ label: '好', kind: 'primary', onClick: function () { afterSend(text); } }] });
+    var ta = $('#manualCopy');
+    ta.value = text;
+    setTimeout(function () { ta.focus(); ta.select(); }, 30);
+  }
+
+  /* ---------- load from record / template ---------- */
+  function ensureItem(l) {
+    if (ITEM[l.id]) return;
+    custom.items.push({ id: l.id, cat: CAT[l.cat] ? l.cat : 'veg', name: String(l.name || '自訂食材'), std: String(l.name || '自訂食材'), alias: [], units: uniq([l.unit]), specs: [], cut: !!CUT_CATS[l.cat], quick: {}, custom: true });
+    saveCustom();
+    rebuildIndex();
+  }
+  function applyLoad(lines, mode) {
+    var next = mode === 'replace' ? {} : JSON.parse(JSON.stringify(state.lines));
+    var present = {};
+    Object.keys(next).forEach(function (id) { present[id] = true; });
+    var added = 0;
+    lines.forEach(function (ln) {
+      var id = ln[0];
+      if (!ITEM[id]) return;
+      if (mode === 'merge' && present[id]) return;
+      if (!next[id]) next[id] = [];
+      next[id].push({ qty: String(ln[1]), unit: String(ln[2] || ''), portions: ln[3] | 0, spec: String(ln[4] || ''), warn: ln[5] ? String(ln[5]) : '' });
+      added++;
+    });
+    state.lines = next;
+    ui.open = {};
+    ui.adding = null;
+    saveDraftNow();
+    renderList();
+    renderNav();
+    scheduleOutput();
+    closeSheet('sheetRec');
+    toast('已帶入 ' + added + ' 筆食材，到貨日期、教室、老師、班級沒有變動');
+  }
+  function requestLoad(lines, label) {
+    var n = Object.keys(state.lines).length;
+    if (!n) { applyLoad(lines, 'replace'); return; }
+    modal({ title: '帶入食材', html: '<p>目前已經選了 ' + n + ' 項食材。要怎麼帶入「' + esc(label) + '」？</p>', buttons: [
+      { label: '取消', kind: 'ghost' },
+      { label: '合併（已選的保留）', kind: 'ghost', onClick: function () { applyLoad(lines, 'merge'); } },
+      { label: '取代目前清單', kind: 'primary', onClick: function () { applyLoad(lines, 'replace'); } }
+    ] });
+  }
+
+  /* ---------- records sheet ---------- */
+  function fmtMade(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '/' + p(d.getMonth() + 1) + '/' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function recWhen(h) { return h && h.date ? F.fmtDate(h.date) + (h.time || '') : '未填日期'; }
+  function fmtStamp(ts) {
+    var d = new Date(ts), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function itemNames(lines, getName) {
+    var names = uniq(lines.map(getName));
+    var s = names.slice(0, 8).join('、');
+    return s + (names.length > 8 ? '…' : '') + '（' + lines.length + ' 筆）';
+  }
+  function tplLineText(ln) {
+    var item = ITEM[ln[0]];
+    if (!item) return '';
+    return F.lineText(item, { qty: String(ln[1]), unit: ln[2], portions: ln[3] | 0, spec: ln[4] || '' }, Number(ln[1])) + (ln[5] ? '  ⚠ ' + ln[5] : '');
+  }
+  function renderRecords() {
+    var body = $('#recBody');
+    var q = norm(ui.recQ);
+    var html = '<div class="seg" role="group" aria-label="紀錄種類">' +
+      '<button type="button" data-rtab="mine" aria-pressed="' + (ui.recTab === 'mine') + '">我的紀錄（' + records.length + '）</button>' +
+      '<button type="button" data-rtab="excel" aria-pressed="' + (ui.recTab === 'excel') + '">Excel 舊單（' + SEED.templates.length + '）</button></div>' +
+      '<input type="search" id="recQ" placeholder="搜尋班級、老師或食材" aria-label="搜尋紀錄" value="' + esc(ui.recQ) + '" autocomplete="off">';
+    if (ui.recTab === 'mine') {
+      var list = records.filter(function (r) {
+        if (!q) return true;
+        var hay = norm([r.name, r.header && r.header.teacher, r.header && r.header.cls, r.header && r.header.room].concat(r.lines.map(function (l) { return l.name; })).join('|'));
+        return hay.indexOf(q) >= 0;
+      });
+      if (!records.length) html += '<p class="hint">還沒有紀錄。每次按「複製訊息」或「用 LINE 分享」都會自動存一筆，下次點「帶入」就能沿用。</p>';
+      else if (!list.length) html += '<p class="hint">找不到符合的紀錄。</p>';
+      html += '<ul class="reclist">' + list.map(function (r) {
+        var h = r.header || {};
+        var open = !!ui.expanded[r.id];
+        return '<li class="rec">' +
+          '<div class="rec-top">' + esc(recWhen(h)) + (h.cls ? '・' + esc(h.cls) : '') + (h.teacher ? '・' + esc(h.teacher) : '') + (h.room ? '・' + esc(h.room) : '') + '</div>' +
+          (r.name ? '<div class="rec-name">' + esc(r.name) + '</div>' : '') +
+          '<div class="rec-items">' + esc(itemNames(r.lines, function (l) { return l.name; })) + '</div>' +
+          '<div class="rec-meta">存於 ' + esc(fmtStamp(r.ts)) + '</div>' +
+          (open ? '<pre class="rec-pre">' + esc(r.text || '') + '</pre>' : '') +
+          '<div class="rec-actions">' +
+          '<button type="button" class="btn btn-sm" data-rload="' + esc(r.id) + '">帶入</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-rview="' + esc(r.id) + '">' + (open ? '收起' : '查看') + '</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-rname="' + esc(r.id) + '">取名</button>' +
+          '<button type="button" class="btn btn-danger btn-sm" data-rdel="' + esc(r.id) + '">刪除</button>' +
+          '</div></li>';
+      }).join('') + '</ul>';
+    } else {
+      var clsList = uniq(SEED.templates.map(function (t) { return t.cls; }));
+      html += '<div class="chips">' + ['全部'].concat(clsList).map(function (c) {
+        var v = c === '全部' ? '' : c;
+        return '<button type="button" class="chip chip-sm" data-rcls="' + esc(v) + '" aria-pressed="' + (ui.recCls === v) + '">' + esc(c) + '</button>';
+      }).join('') + '</div>';
+      var tpls = SEED.templates.slice().reverse().filter(function (t) {
+        if (ui.recCls && t.cls !== ui.recCls) return false;
+        if (!q) return true;
+        var hay = norm([t.teacher, t.cls].concat(t.lines.map(function (ln) { var it = ITEM[ln[0]]; return it ? it.name + '|' + it.std : ''; })).join('|'));
+        return hay.indexOf(q) >= 0;
+      });
+      html += '<p class="hint">整理自 Excel 的歷史叫貨明細（' + esc(SEED.templates[0].date.replace(/-/g, '/')) + '～' + esc(SEED.templates[SEED.templates.length - 1].date.replace(/-/g, '/')) + '，以用課／送達日期排序）。帶入後可以再改。</p>';
+      if (!tpls.length) html += '<p class="hint">找不到符合的舊單。</p>';
+      html += '<ul class="reclist">' + tpls.map(function (t) {
+        var open = !!ui.expanded[t.id];
+        return '<li class="rec">' +
+          '<div class="rec-top">' + esc(F.fmtDate(t.date, true)) + '・' + esc(t.cls) + '・' + esc(t.teacher) + '</div>' +
+          '<div class="rec-items">' + esc(itemNames(t.lines, function (ln) { return ITEM[ln[0]] ? ITEM[ln[0]].name : ''; })) + '</div>' +
+          (open ? '<pre class="rec-pre">' + esc(t.lines.map(tplLineText).join('\n')) + '</pre>' : '') +
+          '<div class="rec-actions">' +
+          '<button type="button" class="btn btn-sm" data-tload="' + t.id + '">帶入</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-rview="' + t.id + '">' + (open ? '收起' : '查看') + '</button>' +
+          '</div></li>';
+      }).join('') + '</ul>';
+    }
+    body.innerHTML = html;
+  }
+  function recById(id) { return records.filter(function (r) { return r.id === id; })[0]; }
+  function onRecClick(e) {
+    var t = e.target.closest('button');
+    if (!t) return;
+    var d = t.dataset;
+    if (d.rtab) { ui.recTab = d.rtab; renderRecords(); return; }
+    if (d.rcls != null && t.hasAttribute('data-rcls')) { ui.recCls = d.rcls; renderRecords(); return; }
+    if (d.rview) { ui.expanded[d.rview] = !ui.expanded[d.rview]; renderRecords(); return; }
+    if (d.tload) {
+      var tp = SEED.templates.filter(function (x) { return x.id === d.tload; })[0];
+      if (tp) requestLoad(tp.lines, F.fmtDate(tp.date, true) + ' ' + tp.cls + ' 的舊單');
+      return;
+    }
+    if (d.rload) {
+      var r = recById(d.rload);
+      if (!r) return;
+      r.lines.forEach(ensureItem);
+      requestLoad(r.lines.map(function (l) { return [l.id, l.qty, l.unit, l.portions, l.spec]; }), r.name || (recWhen(r.header) + (r.header && r.header.cls ? ' ' + r.header.cls : '')));
+      return;
+    }
+    if (d.rname) {
+      var rn = recById(d.rname);
+      if (!rn) return;
+      modal({ title: '幫這筆紀錄取名', html: '<div class="mform"><label for="recName">名稱（例如：宮保雞丁、第 5 週 207）</label><input class="inp" id="recName" maxlength="30" value="' + esc(rn.name || '') + '"></div>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '儲存', kind: 'primary', onClick: function () { rn.name = cleanText($('#recName').value); saveRecords(); renderRecords(); } }
+      ] });
+      setTimeout(function () { var el = $('#recName'); if (el) el.focus(); }, 30);
+      return;
+    }
+    if (d.rdel) {
+      var rd = recById(d.rdel);
+      if (!rd) return;
+      modal({ title: '刪除這筆紀錄？', html: '<p>' + esc(recWhen(rd.header)) + (rd.name ? '・' + esc(rd.name) : '') + '，刪除後無法復原。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '刪除', kind: 'danger', onClick: function () { records = records.filter(function (x) { return x.id !== rd.id; }); saveRecords(); renderRecords(); } }
+      ] });
+    }
+  }
+
+  /* ---------- settings sheet ---------- */
+  function groupManageHTML(g) {
+    var k = GROUPS[g].key;
+    var visibleBase = BASE[k].filter(function (v) { return custom.hidden[k].indexOf(v) < 0; });
+    var chips = visibleBase.map(function (v) {
+      return '<span class="mchip">' + esc(v) + '<button type="button" data-mhide="' + g + '" data-v="' + esc(v) + '" aria-label="隱藏 ' + esc(v) + '" title="隱藏">✕</button></span>';
+    }).concat(custom[k].map(function (v) {
+      return '<span class="mchip">' + esc(v) + '<span class="tag">自訂</span><button type="button" data-mdel="' + g + '" data-v="' + esc(v) + '" aria-label="刪除 ' + esc(v) + '" title="刪除">✕</button></span>';
+    })).concat(custom.hidden[k].map(function (v) {
+      return '<span class="mchip restore">' + esc(v) + '（已隱藏）<button type="button" data-mrestore="' + g + '" data-v="' + esc(v) + '" aria-label="還原 ' + esc(v) + '" title="還原">↺</button></span>';
+    }));
+    return '<div class="mgroup"><h4>' + GROUPS[g].label + '</h4><div class="mchips">' + (chips.join('') || '<span class="hint">（沒有選項）</span>') + '</div></div>';
+  }
+  function renderSettings() {
+    var body = $('#setBody');
+    var fonts = [['m', '標準'], ['l', '大'], ['xl', '特大']];
+    var html = '';
+    if (!storageOK) html += '<div class="warnbox"><p>這個瀏覽器現在不能存資料（可能是無痕模式），關掉頁面後，新增的選項和紀錄都會不見。</p></div>';
+    if (AUTH) {
+      html += '<section class="sset"><h3>登入</h3><p>目前身分：' + (AUTH.tier === 'admin' ? '管理者' : '一般使用者') + (AUTH.made ? '｜網站版本 ' + esc(fmtMade(AUTH.made)) : '') + '</p>' +
+        '<div class="rec-actions"><button type="button" class="btn btn-ghost btn-sm" data-auth="logout">登出這台裝置</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-auth="admin">管理者：改密碼、更新網站</button></div>' +
+        '<p class="hint">登出後，這台裝置下次要重新輸入密碼。</p></section>';
+    }
+    html += '<section class="sset"><h3>字體大小</h3><div class="seg" role="group" aria-label="字體大小">' + fonts.map(function (f) {
+      return '<button type="button" data-font="' + f[0] + '" aria-pressed="' + (prefs.font === f[0]) + '">' + f[1] + '</button>';
+    }).join('') + '</div></section>';
+    html += '<section class="sset"><h3>教室、老師、班級</h3><p>✕ 隱藏內建選項或刪除自己新增的，↺ 還原。</p>' + ['room', 'teacher', 'cls'].map(groupManageHTML).join('') + '</section>';
+    var ci = custom.items.map(function (i) {
+      return '<span class="mchip">' + esc(i.name) + '（' + esc(SHORT[i.cat]) + '）<button type="button" data-mitem="' + esc(i.id) + '" aria-label="刪除 ' + esc(i.name) + '">✕</button></span>';
+    }).join('');
+    html += '<section class="sset"><h3>自己新增的食材</h3><div class="mchips">' + (ci || '<span class="hint">還沒有。每個分類最下面可以新增。</span>') + '</div></section>';
+    var us = [];
+    Object.keys(custom.units).forEach(function (id) {
+      arr(custom.units[id]).forEach(function (v) { if (ITEM[id]) us.push('<span class="mchip">' + esc(ITEM[id].name) + '・單位 ' + esc(v) + '<button type="button" data-mopt="units" data-id="' + esc(id) + '" data-v="' + esc(v) + '" aria-label="刪除">✕</button></span>'); });
+    });
+    Object.keys(custom.specs).forEach(function (id) {
+      arr(custom.specs[id]).forEach(function (v) { if (ITEM[id]) us.push('<span class="mchip">' + esc(ITEM[id].name) + '・規格 ' + esc(v) + '<button type="button" data-mopt="specs" data-id="' + esc(id) + '" data-v="' + esc(v) + '" aria-label="刪除">✕</button></span>'); });
+    });
+    html += '<section class="sset"><h3>食材的自訂單位、規格</h3><div class="mchips">' + (us.join('') || '<span class="hint">還沒有。在食材裡按單位或規格旁邊的「＋」就能新增。</span>') + '</div></section>';
+    var ps = custom.portions.slice().sort(function (a, b) { return a - b; }).map(function (p) {
+      return '<span class="mchip">' + p + ' 份<button type="button" data-mport="' + p + '" aria-label="刪除 ' + p + ' 份">✕</button></span>';
+    }).join('');
+    var ts = custom.times.map(function (t) {
+      return '<span class="mchip">' + esc(t) + '<button type="button" data-mtime="' + esc(t) + '" aria-label="刪除 ' + esc(t) + '">✕</button></span>';
+    }).join('');
+    html += '<section class="sset"><h3>自訂份數、常用時間</h3><div class="mgroup"><h4>份數</h4><div class="mchips">' + (ps || '<span class="hint">還沒有</span>') + '</div></div>' +
+      '<div class="mgroup"><h4>常用時間（複製時自動記下）</h4><div class="mchips">' + (ts || '<span class="hint">還沒有</span>') + '</div></div></section>';
+    html += '<section class="sset"><h3>資料存在哪裡</h3><p>內建的食材、老師、班級、教室，每個打開網站的人都一樣' + (AUTH ? '；管理者可以把自己新增的選項併入成全站內建' : '') + '。</p><p>自己新增的選項、常用份量和叫貨紀錄，只存在這台裝置的這個瀏覽器；換手機、用無痕模式或清除瀏覽資料就會不見。從 LINE 裡打開和用 Safari、Chrome 打開，可能也是分開記的。</p></section>';
+    html += '<section class="sset"><h3>重設</h3><div class="rec-actions">' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-mreset="quick">清除我累積的常用份量</button>' +
+      '<button type="button" class="btn btn-danger btn-sm" data-mreset="records">清除全部叫貨紀錄</button></div></section>';
+    body.innerHTML = html;
+  }
+  function onSetClick(e) {
+    var t = e.target.closest('button');
+    if (!t) return;
+    var d = t.dataset;
+    if (d.auth === 'logout') {
+      modal({ title: '登出這台裝置？', html: '<p>登出後要重新輸入一般使用者密碼。這台裝置上的叫貨紀錄和自訂選項不會被刪掉。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '登出', kind: 'primary', onClick: function () { saveDraftNow(); try { localStorage.removeItem('fo1.auth'); sessionStorage.removeItem('fo1.next'); } catch (e) {} location.reload(); } }
+      ] });
+      return;
+    }
+    if (d.auth === 'admin') { saveDraftNow(); try { sessionStorage.setItem('fo1.next', 'admin'); } catch (e) {} location.reload(); return; }
+    if (d.font) { prefs.font = d.font; savePrefs(); applyFont(); renderSettings(); return; }
+    if (d.mhide) {
+      var k = GROUPS[d.mhide].key;
+      custom.hidden[k] = uniq(custom.hidden[k].concat([d.v]));
+      if (state.header[d.mhide] === d.v) { state.header[d.mhide] = ''; saveDraft(); }
+      saveCustom(); renderSettings(); renderInfo(); scheduleOutput(); return;
+    }
+    if (d.mrestore) {
+      var k2 = GROUPS[d.mrestore].key;
+      custom.hidden[k2] = custom.hidden[k2].filter(function (v) { return v !== d.v; });
+      saveCustom(); renderSettings(); renderInfo(); return;
+    }
+    if (d.mdel) {
+      var k3 = GROUPS[d.mdel].key;
+      custom[k3] = custom[k3].filter(function (v) { return v !== d.v; });
+      if (state.header[d.mdel] === d.v) { state.header[d.mdel] = ''; saveDraft(); }
+      saveCustom(); renderSettings(); renderInfo(); scheduleOutput(); return;
+    }
+    if (d.mitem) {
+      var it = ITEM[d.mitem];
+      if (!it) return;
+      modal({ title: '刪除「' + it.name + '」？', html: '<p>這張單上如果有選它，也會一起移除。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '刪除', kind: 'danger', onClick: function () {
+          custom.items = custom.items.filter(function (i) { return i.id !== d.mitem; });
+          delete custom.units[d.mitem]; delete custom.specs[d.mitem]; delete custom.quick[d.mitem];
+          delete state.lines[d.mitem]; delete ui.open[d.mitem];
+          saveCustom(); saveDraftNow(); rebuildIndex(); renderList(); renderNav(); renderSettings(); scheduleOutput();
+        } }
+      ] });
+      return;
+    }
+    if (d.mopt) {
+      custom[d.mopt][d.id] = arr(custom[d.mopt][d.id]).filter(function (v) { return v !== d.v; });
+      if (!custom[d.mopt][d.id].length) delete custom[d.mopt][d.id];
+      saveCustom(); renderSettings(); if (ui.open[d.id]) renderItem(d.id); return;
+    }
+    if (d.mport) {
+      custom.portions = custom.portions.filter(function (p) { return p !== Number(d.mport); });
+      saveCustom(); renderSettings(); Object.keys(ui.open).forEach(renderItem); return;
+    }
+    if (d.mtime) {
+      custom.times = custom.times.filter(function (x) { return x !== d.mtime; });
+      saveCustom(); renderSettings(); renderInfo(); return;
+    }
+    if (d.mreset === 'quick') {
+      modal({ title: '清除累積的常用份量？', html: '<p>只會清掉你自己複製時累積的份量快捷鈕，Excel 帶進來的常用份量會保留。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '清除', kind: 'danger', onClick: function () { custom.quick = {}; saveCustom(); Object.keys(ui.open).forEach(renderItem); toast('已清除'); } }
+      ] });
+      return;
+    }
+    if (d.mreset === 'records') {
+      modal({ title: '清除全部叫貨紀錄？', html: '<p>共 ' + records.length + ' 筆，刪除後無法復原。Excel 舊單不受影響。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '全部清除', kind: 'danger', onClick: function () { records = []; saveRecords(); toast('紀錄已清除'); } }
+      ] });
+    }
+  }
+  function applyFont() {
+    if (prefs.font === 'm') document.documentElement.removeAttribute('data-font');
+    else document.documentElement.setAttribute('data-font', prefs.font);
+    measure();
+  }
+
+  /* ---------- add item ---------- */
+  function openAddItem(cat, name) {
+    modal({ title: '新增食材', html: '<div class="mform">' +
+      '<label for="niName">食材名稱</label><input class="inp" id="niName" maxlength="20" value="' + esc(name || '') + '" placeholder="例如：牛腱">' +
+      '<label for="niCat">分類</label><select id="niCat">' + CATS.map(function (c) { return '<option value="' + c.id + '"' + (c.id === cat ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+      '<label for="niUnits">常用單位（可以填好幾個，用頓號分開）</label><input class="inp" id="niUnits" maxlength="40" value="g" placeholder="例如：g、斤、塊">' +
+      '<label for="niSpecs">規格（可不填，用頓號分開）</label><input class="inp" id="niSpecs" maxlength="60" placeholder="例如：去筋、切片">' +
+      '</div>', buttons: [
+      { label: '取消', kind: 'ghost' },
+      { label: '新增', kind: 'primary', keep: true, onClick: function () {
+        var nm = cleanText($('#niName').value);
+        var c = $('#niCat').value;
+        var units = splitList($('#niUnits').value).map(function (u) { return u === '克' ? 'g' : u; });
+        var specs = splitList($('#niSpecs').value);
+        if (!nm) { toast('請填食材名稱'); $('#niName').focus(); return; }
+        if (!units.length) units = ['g'];
+        var dup = ITEMS.filter(function (i) { return i.name === nm || i.std === nm; })[0];
+        if (dup) {
+          closeModal();
+          toast('已經有「' + dup.name + '」了，幫你打開');
+          ui.q = ''; $('#q').value = ''; applyFilter();
+          if (!ui.open[dup.id]) openItem(dup.id);
+          scrollToItem(dup.id);
+          return;
+        }
+        var id = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        custom.items.push({ id: id, cat: c, name: nm, std: nm, alias: [], units: units, specs: specs, cut: !!CUT_CATS[c], quick: {}, custom: true });
+        saveCustom();
+        rebuildIndex();
+        closeModal();
+        ui.q = ''; $('#q').value = '';
+        renderList();
+        openItem(id);
+        scrollToItem(id);
+        toast('已新增「' + nm + '」，這台裝置會記住');
+      } }
+    ] });
+    setTimeout(function () { var el = $('#niName'); if (el) el.focus(); }, 30);
+  }
+  function scrollToItem(id) {
+    var li = liOf(id);
+    if (li) li.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'center' });
+  }
+
+  /* ---------- modal / sheets / toast ---------- */
+  var lastFocus = null;
+  function modal(o) {
+    var m = $('#modal');
+    $('#modalTitle').textContent = o.title || '';
+    var b = $('#modalBody');
+    if (o.html != null) b.innerHTML = o.html; else b.textContent = o.body || '';
+    var foot = $('#modalFoot');
+    foot.innerHTML = '';
+    var primary = null;
+    o.buttons.forEach(function (bt) {
+      var el;
+      if (bt.href) { el = document.createElement('a'); el.href = bt.href; el.target = '_blank'; el.rel = 'noopener'; }
+      else { el = document.createElement('button'); el.type = 'button'; }
+      el.className = 'btn btn-sm' + (bt.kind === 'primary' ? '' : bt.kind === 'danger' ? ' btn-danger' : ' btn-ghost');
+      el.textContent = bt.label;
+      el.addEventListener('click', function (ev) {
+        if (bt.onClick) bt.onClick(ev);
+        if (!bt.keep) closeModal();
+      });
+      foot.appendChild(el);
+      if (bt.kind === 'primary' || bt.kind === 'danger') primary = el;
+    });
+    if (m.hidden) lastFocus = document.activeElement;
+    m.hidden = false;
+    lockScroll();
+    if (!b.querySelector('input,textarea,select')) (primary || foot.firstChild).focus();
+  }
+  function closeModal() {
+    var m = $('#modal');
+    if (m.hidden) return;
+    m.hidden = true;
+    lockScroll();
+    if (lastFocus && document.contains(lastFocus)) { try { lastFocus.focus(); } catch (e) {} }
+  }
+  function openSheet(id) {
+    var s = document.getElementById(id);
+    if (id === 'sheetRec') renderRecords();
+    if (id === 'sheetSet') renderSettings();
+    s.hidden = false;
+    lockScroll();
+    var btn = s.querySelector('[data-close]');
+    if (btn) btn.focus();
+  }
+  function closeSheet(id) {
+    var s = document.getElementById(id);
+    if (!s || s.hidden) return;
+    s.hidden = true;
+    lockScroll();
+  }
+  function openPanel() {
+    $('#panel').classList.add('open');
+    lockScroll();
+    setTimeout(function () { $('#btnBack').focus(); }, 60);
+  }
+  function closePanel() {
+    $('#panel').classList.remove('open');
+    lockScroll();
+    $('#btnPreview').focus();
+  }
+  function lockScroll() {
+    var anyOpen = !$('#modal').hidden || !$('#sheetRec').hidden || !$('#sheetSet').hidden || (!WIDE.matches && $('#panel').classList.contains('open'));
+    document.documentElement.classList.toggle('lock', !!anyOpen);
+  }
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2800);
+  }
+
+  /* ---------- layout measurements ---------- */
+  function measure() {
+    var ab = $('#appbar'), tb = $('#toolbar');
+    if (ab) document.documentElement.style.setProperty('--appbar-h', ab.offsetHeight + 'px');
+    if (tb) document.documentElement.style.setProperty('--toolbar-h', tb.offsetHeight + 'px');
+  }
+
+  /* ---------- wiring ---------- */
+  function wire() {
+    $('#fDate').addEventListener('change', function (e) { state.header.date = e.target.value || ''; saveDraft(); renderInfo(); scheduleOutput(); });
+    $('#fTime').addEventListener('change', function (e) { state.header.time = e.target.value || ''; saveDraft(); renderInfo(); scheduleOutput(); });
+    $('#btnInfoFold').addEventListener('click', function () { ui.infoFolded = !ui.infoFolded; renderInfoSum(); measure(); });
+    $('#cardInfo').addEventListener('click', function (e) {
+      var t = e.target.closest('button');
+      if (!t) return;
+      var d = t.dataset;
+      if (t.hasAttribute('data-date')) { state.header.date = d.date; saveDraft(); renderInfo(); scheduleOutput(); return; }
+      if (t.hasAttribute('data-time')) { state.header.time = d.time; saveDraft(); renderInfo(); scheduleOutput(); return; }
+      if (d.g) { state.header[d.g] = state.header[d.g] === d.v ? '' : d.v; saveDraft(); renderGroup(d.g); scheduleOutput(); return; }
+      if (d.gadd) { ui.groupAdding = d.gadd; renderGroup(d.gadd); var inp = $('#gadd-' + d.gadd); if (inp) inp.focus(); return; }
+      if (d.gaddcancel) { ui.groupAdding = ''; renderGroup(d.gaddcancel); return; }
+      if (d.gaddok) { commitGroupAdd(d.gaddok); }
+    });
+    $('#cardInfo').addEventListener('keydown', function (e) {
+      var t = e.target;
+      if (!t.id || t.id.indexOf('gadd-') !== 0) return;
+      var g = t.id.slice(5);
+      if (e.key === 'Enter') { e.preventDefault(); commitGroupAdd(g); }
+      else if (e.key === 'Escape') { ui.groupAdding = ''; renderGroup(g); }
+    });
+
+    var list = $('#list');
+    list.addEventListener('click', function (e) {
+      var add = e.target.closest('[data-additem]');
+      if (add) { openAddItem(add.getAttribute('data-additem'), add.getAttribute('data-name') || ''); return; }
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      var li = btn.closest('.item');
+      if (!li) return;
+      var id = li.getAttribute('data-id');
+      var lineEl = btn.closest('.line');
+      var i = lineEl ? +lineEl.getAttribute('data-li') : -1;
+      switch (btn.getAttribute('data-act')) {
+        case 'toggle': if (ui.open[id]) closeItem(id); else openItem(id); break;
+        case 'dec': stepQty(id, i, -1); break;
+        case 'inc': stepQty(id, i, 1); break;
+        case 'quick': setQty(id, i, btn.getAttribute('data-v')); break;
+        case 'add':
+          ui.adding = { id: id, li: i, kind: btn.getAttribute('data-kind') };
+          renderItem(id);
+          focusIn(id, '[data-addinput]');
+          break;
+        case 'addok': commitAdd(id); break;
+        case 'addcancel': ui.adding = null; renderItem(id); break;
+        case 'delline': delLine(id, i); break;
+        case 'addline': addLine(id); break;
+        case 'done': closeItem(id); break;
+      }
+    });
+    list.addEventListener('change', function (e) {
+      var el = e.target, f = el.getAttribute('data-f');
+      if (!f || f === 'qty') return;
+      var li = el.closest('.item'), lineEl = el.closest('.line');
+      if (!li || !lineEl) return;
+      var id = li.getAttribute('data-id'), i = +lineEl.getAttribute('data-li');
+      var l = state.lines[id] && state.lines[id][i];
+      if (!l) return;
+      if (f === 'unit') l.unit = el.value;
+      else if (f === 'spec') l.spec = el.value;
+      else if (f === 'portions') l.portions = parseInt(el.value, 10) || 0;
+      l.warn = '';
+      changed(id, true);
+    });
+    list.addEventListener('input', function (e) {
+      var el = e.target;
+      if (el.getAttribute('data-f') !== 'qty') return;
+      var li = el.closest('.item'), lineEl = el.closest('.line');
+      var id = li.getAttribute('data-id'), i = +lineEl.getAttribute('data-li');
+      var l = state.lines[id] && state.lines[id][i];
+      if (!l) return;
+      l.qty = el.value;
+      l.warn = '';
+      var item = ITEM[id];
+      li.className = itemClass(item);
+      var sum = li.querySelector('.item-sum');
+      if (sum) sum.innerHTML = sumHTML(item);
+      var ico = li.querySelector('.item-ico');
+      if (ico) ico.textContent = '︿';
+      var out = lineEl.querySelector('.line-out-t');
+      if (out) out.textContent = lineOutText(item, l);
+      var qv = F.parseQty(l.qty);
+      $$('.qchip', lineEl).forEach(function (c) { c.setAttribute('aria-pressed', String(Number(c.getAttribute('data-v')) === qv)); });
+      var w = lineEl.querySelector('.warn-line');
+      if (w) w.remove();
+      saveDraft();
+      renderNav();
+      scheduleOutput();
+    });
+    list.addEventListener('keydown', function (e) {
+      var el = e.target;
+      if (el.hasAttribute('data-addinput')) {
+        var id = el.closest('.item').getAttribute('data-id');
+        if (e.key === 'Enter') { e.preventDefault(); commitAdd(id); }
+        else if (e.key === 'Escape') { ui.adding = null; renderItem(id); }
+      } else if (el.getAttribute('data-f') === 'qty' && e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+
+    $('#q').addEventListener('input', function (e) { ui.q = e.target.value; applyFilter(); });
+    $('#onlySel').addEventListener('click', function (e) {
+      ui.onlySel = !ui.onlySel;
+      e.currentTarget.setAttribute('aria-pressed', String(ui.onlySel));
+      applyFilter();
+    });
+    $('#catnav').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cat]');
+      if (!b) return;
+      var sec = document.getElementById('cat-' + b.getAttribute('data-cat'));
+      if (!sec) return;
+      if (sec.hidden) { toast('這個分類目前被搜尋或「只看已選」篩掉了'); return; }
+      sec.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
+    });
+
+    $('#styleSeg').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-style]');
+      if (!b) return;
+      prefs.style = b.getAttribute('data-style');
+      savePrefs();
+      scheduleOutput();
+    });
+    $('#rcpOn').addEventListener('change', function (e) { state.receipt.on = e.target.checked; saveDraft(); scheduleOutput(); });
+    function setRcp(n) { state.receipt.count = clampInt(n, 1, 99, 1); if (!state.receipt.on) state.receipt.on = true; saveDraft(); $('#rcpN').value = state.receipt.count; scheduleOutput(); }
+    $('#rcpDec').addEventListener('click', function () { setRcp(state.receipt.count - 1); });
+    $('#rcpInc').addEventListener('click', function () { setRcp(state.receipt.count + 1); });
+    $('#rcpN').addEventListener('input', function (e) {
+      var n = parseInt(F.toAscii(e.target.value), 10);
+      if (n >= 1) { state.receipt.count = Math.min(99, n); if (!state.receipt.on) state.receipt.on = true; saveDraft(); scheduleOutput(); }
+    });
+    $('#rcpN').addEventListener('blur', function (e) { e.target.value = state.receipt.count; });
+    $('#note').addEventListener('input', function (e) { state.note = e.target.value; saveDraft(); scheduleOutput(); });
+    $('#btnCopy').addEventListener('click', onCopy);
+    $('#btnLine').addEventListener('click', onLine);
+    $('#btnSaveTpl').addEventListener('click', function () {
+      var rows = selectedRows();
+      if (!rows.length) { toast('還沒有填好份量的食材'); return; }
+      modal({ title: '存成一筆紀錄', html: '<div class="mform"><label for="tplName">名稱（可不填，例如：宮保雞丁）</label><input class="inp" id="tplName" maxlength="30"></div>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '儲存', kind: 'primary', onClick: function () { saveRecord(messageFor(selectedRows()), cleanText($('#tplName').value) || '（未命名）'); toast('已存到「紀錄」'); } }
+      ] });
+      setTimeout(function () { var el = $('#tplName'); if (el) el.focus(); }, 30);
+    });
+    $('#btnClear').addEventListener('click', function () {
+      modal({ title: '清空這張單？', html: '<p>「只清空食材」會保留到貨日期、教室、老師、班級。</p>', buttons: [
+        { label: '取消', kind: 'ghost' },
+        { label: '全部清空', kind: 'danger', onClick: function () { state = blankDraft(); ui.open = {}; ui.adding = null; saveDraftNow(); renderAll(); toast('已全部清空'); } },
+        { label: '只清空食材', kind: 'primary', onClick: function () { state.lines = {}; state.note = ''; ui.open = {}; ui.adding = null; saveDraftNow(); renderList(); renderNav(); scheduleOutput(); toast('食材已清空'); } }
+      ] });
+    });
+    $('#btnPreview').addEventListener('click', openPanel);
+    $('#btnBack').addEventListener('click', closePanel);
+    $('#btnRecords').addEventListener('click', function () { openSheet('sheetRec'); });
+    $('#btnSettings').addEventListener('click', function () { openSheet('sheetSet'); });
+    $$('[data-close]').forEach(function (b) { b.addEventListener('click', function () { closeSheet(b.getAttribute('data-close')); }); });
+    $$('.sheet').forEach(function (s) { s.addEventListener('click', function (e) { if (e.target === s) closeSheet(s.id); }); });
+    $('#modal').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+    $('#recBody').addEventListener('click', onRecClick);
+    $('#recBody').addEventListener('input', function (e) {
+      if (e.target.id !== 'recQ') return;
+      ui.recQ = e.target.value;
+      var pos = e.target.selectionStart;
+      renderRecords();
+      var el = $('#recQ');
+      el.focus();
+      try { el.setSelectionRange(pos, pos); } catch (er) {}
+    });
+    $('#setBody').addEventListener('click', onSetClick);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!$('#modal').hidden) { closeModal(); return; }
+      if (!$('#sheetRec').hidden) { closeSheet('sheetRec'); return; }
+      if (!$('#sheetSet').hidden) { closeSheet('sheetSet'); return; }
+      if ($('#panel').classList.contains('open')) closePanel();
+    });
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(measure);
+      ro.observe($('#appbar'));
+      ro.observe($('#toolbar'));
+    } else window.addEventListener('resize', measure);
+    if (WIDE.addEventListener) WIDE.addEventListener('change', function () { lockScroll(); });
+    window.addEventListener('pagehide', saveDraftNow);
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') saveDraftNow(); });
+  }
+  function commitGroupAdd(g) {
+    var inp = $('#gadd-' + g);
+    var v = cleanText(inp ? inp.value : '');
+    if (!v) { if (inp) inp.focus(); return; }
+    var k = GROUPS[g].key;
+    if (custom.hidden[k].indexOf(v) >= 0) custom.hidden[k] = custom.hidden[k].filter(function (x) { return x !== v; });
+    else if (optionsOf(g).indexOf(v) < 0) custom[k].push(v);
+    state.header[g] = v;
+    ui.groupAdding = '';
+    saveCustom();
+    saveDraft();
+    renderGroup(g);
+    scheduleOutput();
+    toast('已新增「' + v + '」，這台裝置會記住');
+  }
+  function renderAll() {
+    renderInfo();
+    renderNav();
+    renderList();
+    renderOutput();
+    measure();
+  }
+
+  /* ---------- boot ---------- */
+  rebuildIndex();
+  cleanDraft();
+  applyFont();
+  wire();
+  renderAll();
+  var hot = window.claude && window.claude.hot;
+  if (hot) {
+    try { if (typeof hot.snapshot === 'function') hot.snapshot(function () { return { draft: state }; }); } catch (e) {}
+    try {
+      if (typeof hot.ready === 'function') hot.ready(function (d) {
+        if (d && d.draft && typeof d.draft === 'object') { state = normalizeDraft(d.draft); cleanDraft(); renderAll(); }
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+</body>
+</html>
