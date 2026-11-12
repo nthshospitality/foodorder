@@ -109,6 +109,18 @@ textarea{width:100%;resize:vertical;line-height:1.5}
 .nav-chip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer;font-weight:600;font-size:.9375rem}
 .nav-chip:hover{border-color:var(--accent)}
 .badge{display:inline-grid;place-items:center;min-width:1.4em;height:1.4em;padding:0 4px;border-radius:999px;background:var(--carrot);color:var(--on-accent);font-size:.75rem;font-weight:700;font-variant-numeric:tabular-nums}
+/* mouse screens and tablets: all eight categories visible as one row of tiles (two rows of four when narrow); phones keep the swipe row */
+@media (hover:hover) and (pointer:fine), (min-width:600px) and (min-height:600px){
+  .toolbar{container-type:inline-size}
+  .catnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;padding-top:10px}
+  .nav-chip{position:relative;flex-direction:column;justify-content:center;gap:2px;min-width:0;min-height:58px;padding:6px 4px;font-size:.875rem;line-height:1.25}
+  .nav-chip > span[aria-hidden]{font-size:1.25rem;line-height:1.1}
+  .nav-chip .badge{position:absolute;top:4px;right:4px}
+  .nav-t{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@container (min-width:32rem){
+  .catnav{grid-template-columns:repeat(8,minmax(0,1fr))}
+}
 
 /* item list */
 .cat{padding-top:16px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--appbar-h) + var(--toolbar-h) + 8px)}
@@ -894,7 +906,7 @@ var FOX = (function () {
   function renderNav() {
     $('#catnav').innerHTML = CATS.map(function (c) {
       var n = ITEMS.filter(function (i) { return i.cat === c.id && isSelected(i.id); }).length;
-      return '<button type="button" class="nav-chip" data-cat="' + c.id + '"><span aria-hidden="true">' + c.emoji + '</span>' + SHORT[c.id] + (n ? '<span class="badge" aria-label="已選 ' + n + ' 項">' + n + '</span>' : '') + '</button>';
+      return '<button type="button" class="nav-chip" data-cat="' + c.id + '"><span aria-hidden="true">' + c.emoji + '</span><span class="nav-t">' + SHORT[c.id] + '</span>' + (n ? '<span class="badge" aria-label="已選 ' + n + ' 項">' + n + '</span>' : '') + '</button>';
     }).join('');
   }
 
@@ -1667,6 +1679,11 @@ var FOX = (function () {
       e.currentTarget.setAttribute('aria-pressed', String(ui.onlySel));
       applyFilter();
     });
+    $('#catnav').addEventListener('wheel', function (e) {
+      var nav = e.currentTarget;
+      if (nav.scrollWidth <= nav.clientWidth + 1) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { nav.scrollLeft += e.deltaY; e.preventDefault(); }
+    }, { passive: false });
     $('#catnav').addEventListener('click', function (e) {
       var b = e.target.closest('[data-cat]');
       if (!b) return;
